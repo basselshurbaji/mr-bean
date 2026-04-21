@@ -1,0 +1,19 @@
+# Build
+backend/bin/
+*.exe
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# IDE — IntelliJ / GoLand
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Go
+vendor/
