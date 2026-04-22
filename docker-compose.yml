@@ -1,10 +1,13 @@
 services:
   postgres:
     image: postgres:16-alpine
+    env_file:
+      - path: ./backend/.env
+        required: false
     environment:
-      POSTGRES_USER:     postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB:       mr_bean
+      POSTGRES_USER:     ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB:       ${DB_NAME:-mr_bean}
     ports:
       - "5432:5432"
     volumes:

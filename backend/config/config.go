@@ -36,7 +36,7 @@ func (d DBConfig) DSN() string {
 }
 
 func Load() Config {
-	secret := getEnv("JWT_SECRET", "mrbean")
+	secret := getEnv("JWT_SECRET", "mr_bean")
 
 	return Config{
 		Port: getEnv("PORT", "8080"),
@@ -44,7 +44,7 @@ func Load() Config {
 			Host:     getEnv("DB_HOST", "localhost"),
 			Port:     getEnv("DB_PORT", "5432"),
 			User:     getEnv("DB_USER", "postgres"),
-			Password: getEnv("DB_PASSWORD", ""),
+			Password: getEnv("DB_PASSWORD", "postgres"),
 			Name:     getEnv("DB_NAME", "mr_bean"),
 			SSLMode:  getEnv("DB_SSLMODE", "disable"),
 		},

@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 
 	"github.com/basselshurbaji/mr_bean/backend/config"
@@ -34,6 +35,8 @@ func (a *userStoreAdapter) GetByEmail(ctx context.Context, email string) (*auth.
 }
 
 func main() {
+	_ = godotenv.Load()
+
 	cfg := config.Load()
 
 	db, err := sql.Open("postgres", cfg.DB.DSN())

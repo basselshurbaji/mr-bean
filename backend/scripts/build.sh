@@ -3,6 +3,8 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
+[[ -f .env ]] && set -a && source .env && set +a
+
 echo "→ Running linter..."
 if ! command -v golangci-lint &>/dev/null; then
     echo "golangci-lint not found. Install: https://golangci-lint.run/usage/install/"
