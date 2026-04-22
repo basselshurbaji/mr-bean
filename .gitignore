@@ -1,5 +1,4 @@
 # Build
-backend/bin/
 *.exe
 
 # Environment
@@ -17,3 +16,7 @@ Thumbs.db
 
 # Go
 vendor/
+
+# Generated
+backend/db/sqlc/*.go
+backend/bin/
