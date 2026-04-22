@@ -13,4 +13,4 @@ migrate:
 	@zsh scripts/migrate.sh
 
 clean:
-	@rm -rf bin/
+	@zsh scripts/clean.sh
