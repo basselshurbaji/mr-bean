@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
@@ -8,21 +10,64 @@ import (
 	_ "github.com/lib/pq"
 
 	"github.com/basselshurbaji/mr_bean/backend/config"
-	"github.com/basselshurbaji/mr_bean/backend/internal/handler"
+	"github.com/basselshurbaji/mr_bean/backend/internal/auth"
+	"github.com/basselshurbaji/mr_bean/backend/internal/health"
+	"github.com/basselshurbaji/mr_bean/backend/internal/router"
+	"github.com/basselshurbaji/mr_bean/backend/internal/user"
 )
+
+// userStoreAdapter adapts user.UserRepo to auth.UserStore.
+type userStoreAdapter struct {
+	repo user.UserRepo
+}
+
+func (a *userStoreAdapter) GetByEmail(ctx context.Context, email string) (*auth.StoredUser, error) {
+	u, err := a.repo.GetByEmail(ctx, email)
+	if err != nil {
+		return nil, err
+	}
+	return &auth.StoredUser{
+		ID:           u.ID,
+		PasswordHash: u.PasswordHash,
+		IsActive:     u.IsActive,
+	}, nil
+}
 
 func main() {
 	cfg := config.Load()
 
-	r := handler.NewRouter()
+	db, err := sql.Open("postgres", cfg.DB.DSN())
+	if err != nil {
+		log.Fatalf("open db: %v", err)
+	}
+	defer func() {
+		if err := db.Close(); err != nil {
+			log.Printf("close db: %v", err)
+		}
+	}()
 
-	routes := []handler.Route{
-		handler.Adapt(handler.NewHealthHandler()),
+	if err := db.Ping(); err != nil {
+		log.Fatalf("ping db: %v", err)
 	}
 
-	for _, route := range routes {
-		handler.Register(r, route)
+	userRepo := user.NewPgUserRepo(db)
+	tokenSvc := auth.NewTokenService(cfg.Auth.JWTSecret, cfg.Auth.JWTExpiry, cfg.Auth.RefreshExpiry)
+	authSvc := auth.NewAuthService(&userStoreAdapter{repo: userRepo}, tokenSvc)
+	userSvc := user.NewUserService(userRepo)
+
+	r := router.NewRouter()
+
+	for _, route := range []router.Route{
+		router.Adapt(health.NewHandler()),
+		router.Adapt(auth.NewLoginHandler(authSvc)),
+		router.Adapt(auth.NewRefreshHandler(authSvc)),
+	} {
+		router.Register(r, route)
 	}
+
+	router.RegisterProtected(r, auth.Middleware(tokenSvc),
+		router.Adapt(user.NewMeHandler(userSvc)),
+	)
 
 	addr := fmt.Sprintf(":%s", cfg.Port)
 	log.Printf("server listening on %s", addr)

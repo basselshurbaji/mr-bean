@@ -2,12 +2,16 @@ package config
 
 import (
 	"fmt"
+	"log"
 	"os"
+	"strconv"
+	"time"
 )
 
 type Config struct {
-	Port    string
-	DB      DBConfig
+	Port string
+	DB   DBConfig
+	Auth AuthConfig
 }
 
 type DBConfig struct {
@@ -19,6 +23,12 @@ type DBConfig struct {
 	SSLMode  string
 }
 
+type AuthConfig struct {
+	JWTSecret     string
+	JWTExpiry     time.Duration
+	RefreshExpiry time.Duration
+}
+
 func (d DBConfig) DSN() string {
 	return fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
@@ -27,6 +37,11 @@ func (d DBConfig) DSN() string {
 }
 
 func Load() Config {
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		log.Fatal("JWT_SECRET is required")
+	}
+
 	return Config{
 		Port: getEnv("PORT", "8080"),
 		DB: DBConfig{
@@ -37,6 +52,11 @@ func Load() Config {
 			Name:     getEnv("DB_NAME", "mr_bean"),
 			SSLMode:  getEnv("DB_SSLMODE", "disable"),
 		},
+		Auth: AuthConfig{
+			JWTSecret:     secret,
+			JWTExpiry:     getMinutes("JWT_EXPIRY", 1),
+			RefreshExpiry: getMinutes("REFRESH_EXPIRY", 1440),
+		},
 	}
 }
 
@@ -45,4 +65,15 @@ func getEnv(key, fallback string) string {
 		return v
 	}
 	return fallback
+}
+
+// getMinutes reads an integer number of minutes from an env var.
+// fallbackMinutes is used when the var is unset or unparseable.
+func getMinutes(key string, fallbackMinutes int) time.Duration {
+	if v := os.Getenv(key); v != "" {
+		if n, err := strconv.Atoi(v); err == nil {
+			return time.Duration(n) * time.Minute
+		}
+	}
+	return time.Duration(fallbackMinutes) * time.Minute
 }

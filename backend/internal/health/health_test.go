@@ -1,14 +1,15 @@
-package handler_test
+package health_test
 
 import (
+	"context"
 	"testing"
 	"time"
 
-	"github.com/basselshurbaji/mr_bean/backend/internal/handler"
+	"github.com/basselshurbaji/mr_bean/backend/internal/health"
 )
 
-func TestHealthHandler(t *testing.T) {
-	h := handler.NewHealthHandler()
+func TestHandler(t *testing.T) {
+	h := health.NewHandler()
 
 	if h.Method() != "GET" {
 		t.Errorf("expected method GET, got %s", h.Method())
@@ -18,12 +19,12 @@ func TestHealthHandler(t *testing.T) {
 		t.Errorf("expected pattern /health, got %s", h.Pattern())
 	}
 
-	if err := h.Validate(handler.HealthRequest{}); err != nil {
+	if err := h.Validate(health.Request{}); err != nil {
 		t.Errorf("expected nil validation error, got %v", err)
 	}
 
 	before := time.Now().Unix()
-	res, err := h.Serve(handler.HealthRequest{})
+	res, err := h.Serve(context.Background(), health.Request{})
 	after := time.Now().Unix()
 
 	if err != nil {
