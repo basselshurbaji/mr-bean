@@ -1,175 +1,207 @@
-# Mr. Bean
+# Mr. Bean — Claude Instructions
 
-Mono-repo. Backend in Go, frontend TBD.
+This file is for AI assistants working on this repo. It describes architecture rules, coding conventions, and patterns to follow. For project setup and stack overview, see `README.md`.
+
+> Every folder in this repo has a `README.md` explaining what it contains and what should go there. Keep them updated when adding new features or moving code.
+
+> Always format Markdown tables with aligned columns — pad cells with spaces so all `|` separators line up vertically. Apply this to every table in every file, including `CLAUDE.md` itself.
+
+---
+
+## Project Layout
 
 ```
 mr_bean/
 ├── backend/
-└── frontend/
+│   ├── cmd/server/         # binary entrypoint — wiring only, no logic
+│   ├── config/             # env-based config, loaded once at startup
+│   ├── db/
+│   │   ├── migrations/     # plain SQL files, applied in order
+│   │   ├── queries/        # sqlc input — named .sql files, one per domain
+│   │   └── sqlc/           # sqlc output — never edit by hand
+│   └── internal/
+│       ├── handler/        # Handler[Req,Res] interface definition only
+│       ├── router/         # chi wiring: Adapt, Register, RegisterProtected, NewRouter
+│       ├── principal/      # shared context helper for user ID (no auth logic)
+│       ├── auth/           # JWT tokens, login/refresh handlers, middleware
+│       ├── health/         # health check endpoint
+│       └── user/           # user repo, service, and /user/me handler
+└── frontend/               # TBD
 ```
+
+`internal/` follows standard Go convention — nothing inside is importable from outside this module.
 
 ---
 
-## Backend
+## Architecture
 
-### Stack
+### Folder-by-feature
 
-| Concern | Choice |
-|---|---|
-| Language | Go |
-| HTTP router | chi |
-| Database | PostgreSQL |
-| Query layer | sqlc (codegen) + sqlx (scanning) |
-| Auth | Bearer token + OAuth2 |
-
-### Project Layout
+Each feature lives in its own package under `internal/`. All three layers (handler, service, repo) are co-located in that folder:
 
 ```
-backend/
-├── cmd/server/         # main entrypoint
-├── config/             # env-based configuration
-├── internal/
-│   ├── handler/        # HTTP layer: routing, decoding, encoding
-│   ├── service/        # business logic
-│   └── repo/           # database access
-└── db/
-    ├── migrations/     # versioned SQL migrations (plain SQL, applied in order)
-    ├── queries/        # sqlc input — .sql files with named queries
-    └── sqlc/           # sqlc generated output — do not edit by hand
+internal/auth/
+    login.go      ← handler
+    refresh.go    ← handler
+    service.go    ← business logic
+    token.go      ← token service
+    middleware.go ← chi middleware
+
+internal/user/
+    me.go         ← handler
+    service.go    ← business logic
+    repo.go       ← database access + domain struct
 ```
 
-`internal/` follows standard Go convention: nothing inside is importable outside this module.
+Do not put handlers in `internal/handler/`, services in `internal/service/`, etc. That pattern is not used.
 
----
-
-### Architecture
-
-Requests flow in one direction only:
+### Request flow
 
 ```
 Handler → Service → Repo
 ```
 
-Each layer depends on the **interface** of the layer below, never the concrete type. Layers do not import each other's types — they communicate through domain structs defined independently.
+Each layer depends on the **interface** of the layer below, never the concrete type. No layer imports another layer's package directly — they communicate through interfaces and domain structs defined locally or in `internal/principal`.
 
-- **Handler** — HTTP only: decode request, call service, encode response. No business logic.
-- **Service** — all business logic. No knowledge of HTTP or SQL.
-- **Repo** — database access only. Wraps sqlc-generated queries behind an interface.
+### Import cycle rule
 
-Co-locate feature code by layer file, not by package:
-```
-internal/handler/user.go
-internal/service/user.go
-internal/repo/user.go
-```
+When two features would create a circular import, break the cycle by:
+1. Defining a narrow interface in the **consuming** package (not the implementing one)
+2. Writing a small adapter in `cmd/server/main.go` that satisfies that interface
+
+Example: `auth` needs user credentials but must not import `user`. Solution: `auth` defines `UserStore` with its own `StoredUser` struct. `main.go` provides `userStoreAdapter` that wraps `user.UserRepo`.
+
+Never introduce a shared `domain` or `types` package just to avoid a cycle — solve it with interfaces.
 
 ---
 
-### Handler Contract
-
-Handlers are generic over their request and response types. `chi` and `net/http` do not leak into handler implementations — they are fully contained in `router.go`.
+## Handler Contract
 
 ```go
 // internal/handler/handler.go
 type Handler[Req, Res any] interface {
     Method() string
     Pattern() string
-    Validate(req Req) error   // return non-nil to respond 422 before Serve is called
-    Serve(req Req) (Res, error)
+    Validate(req Req) error              // 422 before Serve if non-nil
+    Serve(ctx context.Context, req Req) (Res, error)
 }
 ```
 
-`Handler` has no import dependencies. Implementations are plain Go structs.
+- `context.Context` is always the first argument to `Serve` — it carries the request context and any middleware-injected values (e.g. user ID via `principal`).
+- No HTTP types (`http.Request`, `http.ResponseWriter`) appear in handler implementations.
+- `chi` and `net/http` are fully contained in `internal/router/router.go`.
+- GET request structs use `schema` tags; body request structs use `json` tags.
 
-#### Request decoding (router.go)
-
-`Adapt` in `router.go` owns the full HTTP lifecycle and branches on method:
-
-| Method | Decoding |
-|---|---|
-| `POST`, `PUT`, `PATCH` | JSON body → `Req` |
-| `GET` | Query params → `Req` via `gorilla/schema` |
-| anything else | `405 Method Not Allowed` |
-
-GET request structs use `schema` tags. Body request structs use `json` tags.
-
-#### Registration
-
-`Route` is an opaque struct produced by `Adapt`. It has no exported methods — it exists solely to be collected in a slice and passed to `Register`.
+### Registration
 
 ```go
-// cmd/server/main.go
-routes := []handler.Route{
-    handler.Adapt(handler.NewHealthHandler()),
-    handler.Adapt(user.NewCreateHandler(userService)),
-}
+// public routes
+router.Register(r, router.Adapt(auth.NewLoginHandler(authSvc)))
 
-for _, route := range routes {
-    handler.Register(r, route)
-}
+// protected routes (wrapped with auth middleware)
+router.RegisterProtected(r, auth.Middleware(tokenSvc),
+    router.Adapt(user.NewMeHandler(userSvc)),
+)
 ```
 
-Adding a new endpoint = one `handler.Adapt(...)` line in the slice. No other wiring required.
+Adding an endpoint = one `router.Adapt(...)` call. No other wiring required.
 
 ---
 
-### Database
+## Context Values
+
+`internal/principal` is the only package that puts values into `context.Context`. Currently it stores the authenticated user ID.
+
+- Set by: `auth.Middleware` via `principal.WithUserID`
+- Read by: handlers via `principal.UserIDFromContext`
+
+Do not create additional context-value packages. If a new value needs to be shared via context, add it to `principal`.
+
+---
+
+## Build & Linting
+
+Run `make build` from `backend/` before committing. It runs `golangci-lint` then `sqlc generate`. The linter **must pass** — do not commit code with lint errors.
+
+- Install golangci-lint: https://golangci-lint.run/usage/install/
+- Install sqlc: `go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest`
+
+`make test` runs all tests. `make clean` removes the compiled binary.
+
+---
+
+## Database
 
 No ORM. SQL is written explicitly.
 
-- `db/queries/` — named `.sql` files, one file per domain area
-- `db/sqlc/` — generated by `sqlc generate`, never edited manually
-- `db/migrations/` — plain SQL migration files, applied in order
-
-`sqlx` handles anything outside sqlc's scope (named queries, manual struct scanning).
-
-Repo interfaces are defined in `internal/repo/` before their implementations, enabling testing without a live database.
+- Write named queries in `db/queries/<feature>.sql` using sqlc annotations
+- Run `$(go env GOPATH)/bin/sqlc generate` after changing queries or schema
+- Never edit files in `db/sqlc/` by hand
+- `sqlc.yaml` has type overrides: `uuid → string`, `timestamptz → time.Time`
+- Repo interfaces are defined before implementations, enabling testing without a live database
 
 ---
 
-### Configuration
+## Configuration
 
-Loaded once at startup via `config.Load()`. All values come from environment variables with defaults.
+All values come from environment variables. Time durations are expressed as **integer minutes** in env vars (e.g. `JWT_EXPIRY=15` means 15 minutes). Parsed by `getMinutes(key, fallbackMinutes)` in `config.go`.
 
-| Env var | Default | Purpose |
-|---|---|---|
-| `PORT` | `8080` | HTTP listen port |
-| `DB_HOST` | `localhost` | Postgres host |
-| `DB_PORT` | `5432` | Postgres port |
-| `DB_USER` | `postgres` | Postgres user |
-| `DB_PASSWORD` | _(empty)_ | Postgres password |
-| `DB_NAME` | `mr_bean` | Postgres database name |
-| `DB_SSLMODE` | `disable` | Postgres SSL mode |
+| Env var          | Default | Unit    |
+|------------------|---------|---------|
+| `JWT_EXPIRY`     | `1`     | minutes |
+| `REFRESH_EXPIRY` | `1440`  | minutes |
 
-No global state. `Config` is passed explicitly to anything that needs it.
+`JWT_SECRET` is required — server fatals at startup if missing.
 
 ---
 
-### Authentication
+## Authentication
 
-Bearer token auth with OAuth2 support. Auth is enforced via middleware at the router level — individual handlers do not perform auth checks.
+JWT-only. No OAuth2 yet (planned).
 
-_(Implementation TBD)_
-
----
-
-### Testing
-
-- Test files use the external test package (`package handler_test`, not `package handler`) — tests only access exported surface, same as real callers.
-- Service and repo layers are always defined as interfaces first, making them independently testable.
-- No mocking the database in repo tests — integration tests hit a real database.
+- **Access tokens**: short-lived (default 1 min), HS256-signed JWT with `typ:"access"` claim
+- **Refresh tokens**: long-lived (default 1440 min), same signing, `typ:"refresh"` claim
+- `ValidateAccessToken` and `ValidateRefreshToken` each reject the wrong token type
+- Auth middleware validates the Bearer token and sets user ID in context via `principal`
+- Individual handlers never perform auth checks — that belongs in middleware
 
 ---
 
-## Frontend
+## Testing
 
-Stack TBD.
+**Rule:** unit test all logic and handlers; integration tests (real Postgres via testcontainers) are the path for the repo layer when needed. Never skip testing entirely.
+
+### Unit tests
+
+- Test files use the external test package (`package foo_test`) — tests access only exported surface
+- Call handler methods (`Validate`, `Serve`) directly — do not go through the HTTP layer
+- Use `context.Background()` for tests that don't need auth; use `principal.WithUserID(ctx, id)` for tests that do
+- For expired-token tests: instantiate `TokenService` with a negative expiry (e.g. `-time.Second`)
+
+### Mock pattern
+
+Define a small private struct in the test file that satisfies the interface. No mocking libraries.
+
+```go
+type mockUserStore struct {
+    user *auth.StoredUser
+    err  error
+}
+
+func (m *mockUserStore) GetByEmail(_ context.Context, _ string) (*auth.StoredUser, error) {
+    return m.user, m.err
+}
+```
+
+All mocks live in the test file that uses them — never in a shared mock package.
+
+### Integration tests (future)
+
+When repo-layer tests are needed: use `testcontainers-go` to spin up a real `postgres:16-alpine` container, apply migrations from `db/migrations/`, seed data, and test against it. A shared helper `internal/testutil/db.go` will own container setup and `t.Cleanup` teardown.
 
 ---
 
 ## Git Conventions
-
-### Commit messages
 
 Imperative plain English. Short subject line, no period.
 
@@ -179,8 +211,10 @@ Fix query param decoding for GET requests
 Remove unused middleware
 ```
 
-Every commit made with Claude ends with a co-author trailer reflecting the model used in that session. Current model: Claude Sonnet 4.6.
+Every commit made with Claude ends with a co-author trailer:
 
 ```
 Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
 ```
+
+The model name in the trailer reflects the model used in that session.
