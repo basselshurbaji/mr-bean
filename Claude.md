@@ -125,8 +125,9 @@ Run `make build` from `backend/` before committing. It runs `golangci-lint` then
 
 - Install golangci-lint: https://golangci-lint.run/usage/install/
 - Install sqlc: `go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest`
+- Install goose: `go install github.com/pressly/goose/v3/cmd/goose@latest`
 
-`make test` runs all tests. `make clean` removes the compiled binary.
+`make migrate` applies pending migrations (goose tracks state in `goose_db_version`). `make test` runs all tests. `make clean` removes the compiled binary.
 
 ---
 
@@ -151,7 +152,7 @@ All values come from environment variables. Time durations are expressed as **in
 | `JWT_EXPIRY`     | `1`     | minutes |
 | `REFRESH_EXPIRY` | `1440`  | minutes |
 
-`JWT_SECRET` is required — server fatals at startup if missing.
+`JWT_SECRET` defaults to `mrbean` if not set.
 
 ---
 

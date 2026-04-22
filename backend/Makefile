@@ -1,6 +1,6 @@
 BINARY := bin/server
 
-.PHONY: build test clean
+.PHONY: build test migrate clean
 
 build:
 	@zsh scripts/build.sh
@@ -8,6 +8,9 @@ build:
 
 test:
 	@zsh scripts/test.sh
+
+migrate:
+	@zsh scripts/migrate.sh
 
 clean:
 	@rm -rf bin/
