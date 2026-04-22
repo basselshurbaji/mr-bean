@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 	"time"
@@ -37,10 +36,7 @@ func (d DBConfig) DSN() string {
 }
 
 func Load() Config {
-	secret := os.Getenv("JWT_SECRET")
-	if secret == "" {
-		log.Fatal("JWT_SECRET is required")
-	}
+	secret := getEnv("JWT_SECRET", "mrbean")
 
 	return Config{
 		Port: getEnv("PORT", "8080"),
