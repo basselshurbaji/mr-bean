@@ -23,6 +23,8 @@ type UserRepo interface {
 	GetByEmail(ctx context.Context, email string) (*User, error)
 	GetByID(ctx context.Context, id string) (*User, error)
 	Create(ctx context.Context, firstName, lastName, email, passwordHash string) (*User, error)
+	UpdateProfile(ctx context.Context, id, firstName, lastName string) (*User, error)
+	UpdatePassword(ctx context.Context, id, passwordHash string) error
 }
 
 type pgUserRepo struct {
@@ -60,6 +62,25 @@ func (r *pgUserRepo) Create(ctx context.Context, firstName, lastName, email, pas
 		return nil, err
 	}
 	return rowToUser(row), nil
+}
+
+func (r *pgUserRepo) UpdateProfile(ctx context.Context, id, firstName, lastName string) (*User, error) {
+	row, err := r.q.UpdateUserProfile(ctx, db.UpdateUserProfileParams{
+		ID:        id,
+		FirstName: firstName,
+		LastName:  lastName,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return rowToUser(row), nil
+}
+
+func (r *pgUserRepo) UpdatePassword(ctx context.Context, id, passwordHash string) error {
+	return r.q.UpdateUserPassword(ctx, db.UpdateUserPasswordParams{
+		ID:           id,
+		PasswordHash: passwordHash,
+	})
 }
 
 func rowToUser(row db.User) *User {

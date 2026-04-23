@@ -31,6 +31,14 @@ func (m *mockUserStore) Create(_ context.Context, _, _, _, _ string) (*user.User
 	return m.createdUser, m.createErr
 }
 
+func (m *mockUserStore) UpdateProfile(_ context.Context, _, _, _ string) (*user.User, error) {
+	return nil, nil
+}
+
+func (m *mockUserStore) UpdatePassword(_ context.Context, _, _ string) error {
+	return nil
+}
+
 func hashedPassword(t *testing.T, plain string) string {
 	t.Helper()
 	h, err := bcrypt.GenerateFromPassword([]byte(plain), bcrypt.MinCost)

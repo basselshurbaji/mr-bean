@@ -19,6 +19,14 @@ func (m *mockUserService) GetByID(_ context.Context, _ string) (*user.User, erro
 	return m.u, m.err
 }
 
+func (m *mockUserService) UpdateProfile(_ context.Context, _, _, _ string) (*user.User, error) {
+	return m.u, m.err
+}
+
+func (m *mockUserService) ChangePassword(_ context.Context, _, _, _ string) error {
+	return m.err
+}
+
 func TestMeHandler_Validate(t *testing.T) {
 	h := user.NewMeHandler(&mockUserService{})
 	if err := h.Validate(user.MeRequest{}); err != nil {

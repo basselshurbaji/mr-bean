@@ -51,6 +51,8 @@ func main() {
 		router.Adapt(auth.NewRefreshHandler(authSvc)),
 		router.Adapt(auth.NewRegisterHandler(authSvc)),
 		router.Adapt(user.NewMeHandler(userSvc)),
+		router.Adapt(user.NewUpdateHandler(userSvc)),
+		router.Adapt(user.NewChangePasswordHandler(userSvc)),
 	} {
 		router.Register(r, route)
 	}
