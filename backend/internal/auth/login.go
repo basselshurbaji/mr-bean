@@ -1,6 +1,10 @@
 package auth
 
-import "context"
+import (
+	"context"
+
+	"github.com/basselshurbaji/mr_bean/backend/internal/middleware"
+)
 
 type LoginRequest struct {
 	Email    string `json:"email"`
@@ -20,8 +24,9 @@ func NewLoginHandler(auth AuthService) *LoginHandler {
 	return &LoginHandler{auth: auth}
 }
 
-func (h *LoginHandler) Method() string  { return "POST" }
-func (h *LoginHandler) Pattern() string { return "/auth/login" }
+func (h *LoginHandler) Method() string              { return "POST" }
+func (h *LoginHandler) Pattern() string             { return "/auth/login" }
+func (h *LoginHandler) Middlewares() []middleware.Tag { return nil }
 
 func (h *LoginHandler) Validate(req LoginRequest) error {
 	if req.Email == "" {

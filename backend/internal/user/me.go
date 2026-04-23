@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/basselshurbaji/mr_bean/backend/internal/middleware"
 	"github.com/basselshurbaji/mr_bean/backend/internal/principal"
 )
 
@@ -28,6 +29,10 @@ func NewMeHandler(users UserService) *MeHandler {
 
 func (h *MeHandler) Method() string  { return "GET" }
 func (h *MeHandler) Pattern() string { return "/user/me" }
+
+func (h *MeHandler) Middlewares() []middleware.Tag {
+	return []middleware.Tag{middleware.TagAuthenticated}
+}
 
 func (h *MeHandler) Validate(_ MeRequest) error { return nil }
 

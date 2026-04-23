@@ -1,6 +1,10 @@
 package auth
 
-import "context"
+import (
+	"context"
+
+	"github.com/basselshurbaji/mr_bean/backend/internal/middleware"
+)
 
 type RefreshRequest struct {
 	RefreshToken string `json:"refresh_token"`
@@ -19,8 +23,9 @@ func NewRefreshHandler(auth AuthService) *RefreshHandler {
 	return &RefreshHandler{auth: auth}
 }
 
-func (h *RefreshHandler) Method() string  { return "POST" }
-func (h *RefreshHandler) Pattern() string { return "/auth/refresh" }
+func (h *RefreshHandler) Method() string              { return "POST" }
+func (h *RefreshHandler) Pattern() string             { return "/auth/refresh" }
+func (h *RefreshHandler) Middlewares() []middleware.Tag { return nil }
 
 func (h *RefreshHandler) Validate(req RefreshRequest) error {
 	if req.RefreshToken == "" {

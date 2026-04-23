@@ -12,6 +12,7 @@ import (
 	"github.com/basselshurbaji/mr_bean/backend/config"
 	"github.com/basselshurbaji/mr_bean/backend/internal/auth"
 	"github.com/basselshurbaji/mr_bean/backend/internal/health"
+	appmiddleware "github.com/basselshurbaji/mr_bean/backend/internal/middleware"
 	"github.com/basselshurbaji/mr_bean/backend/internal/router"
 	"github.com/basselshurbaji/mr_bean/backend/internal/user"
 )
@@ -40,6 +41,8 @@ func main() {
 	authSvc := auth.NewAuthService(userRepo, tokenSvc)
 	userSvc := user.NewUserService(userRepo)
 
+	appmiddleware.Register(appmiddleware.TagAuthenticated, auth.Middleware(tokenSvc))
+
 	r := router.NewRouter()
 
 	for _, route := range []router.Route{
@@ -47,13 +50,10 @@ func main() {
 		router.Adapt(auth.NewLoginHandler(authSvc)),
 		router.Adapt(auth.NewRefreshHandler(authSvc)),
 		router.Adapt(auth.NewRegisterHandler(authSvc)),
+		router.Adapt(user.NewMeHandler(userSvc)),
 	} {
 		router.Register(r, route)
 	}
-
-	router.RegisterProtected(r, auth.Middleware(tokenSvc),
-		router.Adapt(user.NewMeHandler(userSvc)),
-	)
 
 	addr := fmt.Sprintf(":%s", cfg.Port)
 	log.Printf("server listening on %s", addr)

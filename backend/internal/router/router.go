@@ -5,10 +5,11 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	chimiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/gorilla/schema"
 
 	"github.com/basselshurbaji/mr_bean/backend/internal/handler"
+	"github.com/basselshurbaji/mr_bean/backend/internal/middleware"
 )
 
 var queryDecoder = schema.NewDecoder()
@@ -19,11 +20,18 @@ type Route struct {
 	register func(chi.Router)
 }
 
-// Adapt wraps a Handler into a Route. chi and net/http are fully contained here.
+// Adapt wraps a Handler into a Route. Middleware tags declared by the handler
+// are resolved eagerly from the registry — any unregistered tag panics at
+// startup rather than at request time.
 func Adapt[Req, Res any](h handler.Handler[Req, Res]) Route {
+	mws := middleware.Resolve(h.Middlewares())
 	return Route{
 		register: func(r chi.Router) {
-			r.MethodFunc(h.Method(), h.Pattern(), func(w http.ResponseWriter, req *http.Request) {
+			chain := chi.Router(r)
+			if len(mws) > 0 {
+				chain = r.With(mws...)
+			}
+			chain.MethodFunc(h.Method(), h.Pattern(), func(w http.ResponseWriter, req *http.Request) {
 				var body Req
 
 				switch req.Method {
@@ -64,23 +72,14 @@ func Register(r chi.Router, route Route) {
 	route.register(r)
 }
 
-// RegisterProtected mounts routes under a middleware-protected group.
-func RegisterProtected(r chi.Router, mw func(http.Handler) http.Handler, routes ...Route) {
-	r.Group(func(r chi.Router) {
-		r.Use(mw)
-		for _, route := range routes {
-			route.register(r)
-		}
-	})
-}
-
-// NewRouter creates the base chi router with standard middleware.
+// NewRouter creates the base chi router with standard middleware applied globally.
+// These cover all requests including unmatched routes.
 func NewRouter() chi.Router {
 	r := chi.NewRouter()
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
+	r.Use(chimiddleware.RequestID)
+	r.Use(chimiddleware.RealIP)
+	r.Use(chimiddleware.Logger)
+	r.Use(chimiddleware.Recoverer)
 	return r
 }
 

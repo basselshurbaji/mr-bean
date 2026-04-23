@@ -1,6 +1,10 @@
 package auth
 
-import "context"
+import (
+	"context"
+
+	"github.com/basselshurbaji/mr_bean/backend/internal/middleware"
+)
 
 type RegisterRequest struct {
 	FirstName string `json:"first_name"`
@@ -17,8 +21,9 @@ func NewRegisterHandler(auth AuthService) *RegisterHandler {
 	return &RegisterHandler{auth: auth}
 }
 
-func (h *RegisterHandler) Method() string  { return "POST" }
-func (h *RegisterHandler) Pattern() string { return "/auth/register" }
+func (h *RegisterHandler) Method() string              { return "POST" }
+func (h *RegisterHandler) Pattern() string             { return "/auth/register" }
+func (h *RegisterHandler) Middlewares() []middleware.Tag { return nil }
 
 func (h *RegisterHandler) Validate(req RegisterRequest) error {
 	if req.FirstName == "" {
