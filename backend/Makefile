@@ -1,10 +1,10 @@
-BINARY := bin/server
-
 .PHONY: build test migrate clean
 
 build:
 	@zsh scripts/build.sh
-	@go build -o $(BINARY) ./cmd/server
+
+run:
+	@go run ./cmd/server
 
 test:
 	@zsh scripts/test.sh

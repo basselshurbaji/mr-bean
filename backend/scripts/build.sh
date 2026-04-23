@@ -20,4 +20,7 @@ if ! command -v golangci-lint &>/dev/null; then
 fi
 golangci-lint run ./...
 
+echo "→ Running go build..."
+go build -o bin/server ./cmd/server
+
 echo "✓ built successfully"
