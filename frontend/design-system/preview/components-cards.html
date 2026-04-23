@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #F0E4CC; font-family: 'DM Sans', sans-serif; padding: 20px; display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-start; }
+.card { background: #FAF3E8; border-radius: 20px; box-shadow: 0 2px 8px rgba(28,15,7,0.08); padding: 16px; }
+.label-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px; }
+.bean-name { font-size: 15px; font-weight: 600; color: #1C0F07; }
+.roaster { font-size: 12px; color: #6B3A2A; margin-bottom: 10px; }
+.metrics { display: flex; gap: 14px; }
+.metric { display: flex; flex-direction: column; gap: 1px; }
+.metric-val { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 600; color: #1C0F07; letter-spacing: -0.02em; line-height: 1; }
+.metric-unit { font-size: 12px; color: #6B3A2A; }
+.metric-label { font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #8C5340; margin-top: 2px; }
+.divider { width: 1px; background: #E8D8B8; align-self: stretch; }
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 9999px; font-size: 11px; font-weight: 600; }
+.tag-row { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+.prediction-card { background: #1C0F07; border-radius: 20px; box-shadow: 0 4px 16px rgba(28,15,7,0.2); padding: 16px; color: #FDF8F2; }
+.pred-label { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #D4872A; margin-bottom: 8px; }
+.pred-metrics { display: flex; gap: 16px; flex-wrap: wrap; }
+.pred-val { font-family: 'JetBrains Mono', monospace; font-size: 28px; font-weight: 600; color: #FDF8F2; letter-spacing: -0.02em; line-height: 1; }
+.pred-unit { font-size: 12px; color: #D8C4A0; }
+.pred-lbl { font-size: 10px; color: #8C6050; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 3px; }
+.confidence { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+.conf-bar-bg { flex: 1; height: 4px; background: #2D1810; border-radius: 9999px; }
+.conf-bar { height: 4px; background: #D4872A; border-radius: 9999px; width: 82%; }
+.conf-label { font-size: 11px; color: #D4872A; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<!-- Extraction Card -->
+<div class="card" style="width:280px">
+  <div class="label-row">
+    <div class="bean-name">Yirgacheffe Natural</div>
+    <div class="badge" style="background:#E8F2EA;color:#4A7C59">✓ Dialed in</div>
+  </div>
+  <div class="roaster">Square Mile Coffee · 3 days ago</div>
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-val">18.0<span style="font-size:13px;color:#6B3A2A">g</span></div>
+      <div class="metric-label">Dose</div>
+    </div>
+    <div class="divider"></div>
+    <div class="metric">
+      <div class="metric-val">36.8<span style="font-size:13px;color:#6B3A2A">g</span></div>
+      <div class="metric-label">Yield</div>
+    </div>
+    <div class="divider"></div>
+    <div class="metric">
+      <div class="metric-val">27.4<span style="font-size:13px;color:#6B3A2A">s</span></div>
+      <div class="metric-label">Time</div>
+    </div>
+    <div class="divider"></div>
+    <div class="metric">
+      <div class="metric-val" style="color:#D4872A">1:2.0</div>
+      <div class="metric-label">Ratio</div>
+    </div>
+  </div>
+  <div class="tag-row">
+    <div class="badge" style="background:#F0E4CC;color:#6B3A2A">Blueberry</div>
+    <div class="badge" style="background:#F0E4CC;color:#6B3A2A">Bright</div>
+    <div class="badge" style="background:#F0E4CC;color:#6B3A2A">Light roast</div>
+  </div>
+</div>
+
+<!-- Prediction Card -->
+<div class="prediction-card" style="width:240px">
+  <div class="pred-label">✦ My prediction</div>
+  <div class="pred-metrics">
+    <div>
+      <div class="pred-val">18<span style="font-size:14px;color:#D8C4A0">clicks</span></div>
+      <div class="pred-lbl">Grind</div>
+    </div>
+    <div>
+      <div class="pred-val">18.0<span style="font-size:14px;color:#D8C4A0">g</span></div>
+      <div class="pred-lbl">Dose</div>
+    </div>
+    <div>
+      <div class="pred-val">27<span style="font-size:14px;color:#D8C4A0">s</span></div>
+      <div class="pred-lbl">Target</div>
+    </div>
+  </div>
+  <div class="confidence">
+    <div class="conf-bar-bg"><div class="conf-bar"></div></div>
+    <div class="conf-label">82%</div>
+  </div>
+</div>
+
+<!-- Bean Library Card -->
+<div class="card" style="width:220px">
+  <div style="width:100%;height:72px;background:#2D1810;border-radius:12px;margin-bottom:12px;display:flex;align-items:center;justify-content:center">
+    <div style="font-size:32px;opacity:0.4;color:#FAF3E8">🫘</div>
+  </div>
+  <div class="bean-name">Kenya Kirinyaga AA</div>
+  <div class="roaster">Hasbean · Medium-light</div>
+  <div style="margin-top:8px;display:flex;align-items:center;gap:6px">
+    <div style="font-size:12px;color:#6B3A2A">12 shots logged</div>
+    <div style="width:3px;height:3px;border-radius:50%;background:#B07060"></div>
+    <div class="badge" style="background:#FEF5DC;color:#D68910">Dialing in</div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #FDF8F2; font-family: 'DM Sans', sans-serif; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.group-label { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #8C5340; margin-bottom: 4px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start; }
+/* Field */
+.field { display: flex; flex-direction: column; gap: 5px; min-width: 160px; flex: 1; }
+.field label { font-size: 12px; font-weight: 500; color: #6B3A2A; }
+.input {
+  height: 46px; padding: 0 14px;
+  background: #FAF3E8; border: 1.5px solid #D8C4A0;
+  border-radius: 12px; font-family: 'DM Sans', sans-serif;
+  font-size: 15px; color: #1C0F07; outline: none;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+  width: 100%;
+}
+.input::placeholder { color: #B07060; }
+.input:focus { border-color: #D4872A; box-shadow: 0 0 0 3px rgba(212,135,42,0.15); }
+.input-error { border-color: #C0392B; }
+.input-error:focus { box-shadow: 0 0 0 3px rgba(192,57,43,0.12); }
+.input-mono { font-family: 'JetBrains Mono', monospace; font-size: 17px; font-weight: 500; text-align: right; letter-spacing: -0.01em; }
+.helper { font-size: 11px; color: #8C5340; }
+.helper-error { font-size: 11px; color: #C0392B; }
+/* Textarea */
+.textarea { padding: 12px 14px; height: 80px; resize: none; line-height: 1.5; }
+/* Stepper */
+.stepper { display: flex; align-items: center; gap: 0; height: 46px; background: #FAF3E8; border: 1.5px solid #D8C4A0; border-radius: 12px; overflow: hidden; }
+.stepper-btn { width: 44px; height: 100%; border: none; background: transparent; font-size: 20px; color: #6B3A2A; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+.stepper-btn:hover { background: #F0E4CC; }
+.stepper-val { flex: 1; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 17px; font-weight: 600; color: #1C0F07; }
+/* Select */
+.select {
+  height: 46px; padding: 0 14px;
+  background: #FAF3E8; border: 1.5px solid #D8C4A0;
+  border-radius: 12px; font-family: 'DM Sans', sans-serif;
+  font-size: 15px; color: #1C0F07; outline: none; width: 100%;
+  appearance: none; cursor: pointer;
+}
+.select-wrap { position: relative; flex: 1; min-width: 140px; }
+.select-wrap::after { content: '▾'; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: #6B3A2A; pointer-events: none; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<div>
+  <div class="group-label">Text inputs</div>
+  <div class="row">
+    <div class="field">
+      <label>Bean name</label>
+      <input class="input" type="text" placeholder="e.g. Ethiopian Yirgacheffe">
+    </div>
+    <div class="field">
+      <label>Roaster</label>
+      <input class="input" type="text" value="Square Mile Coffee">
+    </div>
+  </div>
+</div>
+
+<div>
+  <div class="group-label">Numeric inputs (mono)</div>
+  <div class="row">
+    <div class="field" style="max-width:130px">
+      <label>Dose (g)</label>
+      <input class="input input-mono" type="text" value="18.0">
+    </div>
+    <div class="field" style="max-width:130px">
+      <label>Yield (g)</label>
+      <input class="input input-mono" type="text" value="36.5">
+    </div>
+    <div class="field" style="max-width:130px">
+      <label>Time (s)</label>
+      <input class="input input-mono" type="text" placeholder="00">
+    </div>
+  </div>
+</div>
+
+<div>
+  <div class="group-label">Stepper</div>
+  <div class="row">
+    <div class="field" style="max-width:160px">
+      <label>Grind clicks</label>
+      <div class="stepper">
+        <button class="stepper-btn">−</button>
+        <div class="stepper-val">24</div>
+        <button class="stepper-btn">+</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div>
+  <div class="group-label">Select</div>
+  <div class="row">
+    <div class="select-wrap">
+      <select class="select">
+        <option>Espresso</option>
+        <option>Pour over</option>
+        <option>AeroPress</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<div>
+  <div class="group-label">Error state</div>
+  <div class="row">
+    <div class="field">
+      <label>Extraction time</label>
+      <input class="input input-mono input-error" type="text" value="999">
+      <div class="helper-error">That can't be right. Even I don't brew that long.</div>
+    </div>
+  </div>
+</div>
+
+<div>
+  <div class="group-label">Notes</div>
+  <div class="row">
+    <div class="field" style="flex: 1; min-width: 260px;">
+      <label>Tasting notes</label>
+      <textarea class="input textarea" placeholder="Bright, citrusy, hint of blueberry..."></textarea>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

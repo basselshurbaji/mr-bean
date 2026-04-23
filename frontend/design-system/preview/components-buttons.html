@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #FDF8F2; font-family: 'DM Sans', sans-serif; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.label { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #8C5340; margin-bottom: 8px; }
+/* Base button */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  font-family: 'DM Sans', sans-serif; font-weight: 600; cursor: pointer;
+  border: none; outline: none; transition: all 150ms ease; line-height: 1;
+}
+.btn:active { transform: scale(0.97); }
+/* Sizes */
+.btn-lg { height: 52px; padding: 0 28px; font-size: 16px; border-radius: 32px; }
+.btn-md { height: 44px; padding: 0 22px; font-size: 15px; border-radius: 32px; }
+.btn-sm { height: 34px; padding: 0 16px; font-size: 13px; border-radius: 32px; }
+/* Variants */
+.btn-primary   { background: #1C0F07; color: #FDF8F2; }
+.btn-primary:hover { background: #2D1810; }
+.btn-secondary { background: #F0E4CC; color: #1C0F07; }
+.btn-secondary:hover { background: #E8D8B8; }
+.btn-accent    { background: #D4872A; color: #FDF8F2; }
+.btn-accent:hover { background: #C4782A; }
+.btn-ghost     { background: transparent; color: #1C0F07; border: 1.5px solid #D8C4A0; }
+.btn-ghost:hover { background: #FAF3E8; border-color: #8C5340; }
+.btn-danger    { background: #FDECEA; color: #C0392B; border: 1.5px solid #C0392B; }
+.btn-danger:hover { background: #C0392B; color: white; }
+.btn-disabled  { background: #F0E4CC; color: #B07060; cursor: not-allowed; opacity: 0.6; }
+/* Icon button */
+.btn-icon { width: 44px; height: 44px; padding: 0; border-radius: 50%; background: #F0E4CC; color: #1C0F07; font-size: 18px; }
+.btn-icon:hover { background: #E8D8B8; }
+</style>
+</head>
+<body>
+
+<div>
+  <div class="label">Primary</div>
+  <div class="row">
+    <button class="btn btn-primary btn-lg">Add extraction</button>
+    <button class="btn btn-primary btn-md">Add extraction</button>
+    <button class="btn btn-primary btn-sm">Add extraction</button>
+  </div>
+</div>
+
+<div>
+  <div class="label">Secondary</div>
+  <div class="row">
+    <button class="btn btn-secondary btn-lg">View history</button>
+    <button class="btn btn-secondary btn-md">View history</button>
+    <button class="btn btn-secondary btn-sm">View history</button>
+  </div>
+</div>
+
+<div>
+  <div class="label">Accent (Caramel)</div>
+  <div class="row">
+    <button class="btn btn-accent btn-lg">Get prediction</button>
+    <button class="btn btn-accent btn-md">Get prediction</button>
+    <button class="btn btn-accent btn-sm">Get prediction</button>
+  </div>
+</div>
+
+<div>
+  <div class="label">Ghost</div>
+  <div class="row">
+    <button class="btn btn-ghost btn-md">Cancel</button>
+    <button class="btn btn-ghost btn-sm">Cancel</button>
+  </div>
+</div>
+
+<div>
+  <div class="label">Danger &amp; Disabled</div>
+  <div class="row">
+    <button class="btn btn-danger btn-md">Delete shot</button>
+    <button class="btn btn-disabled btn-md" disabled>Save changes</button>
+  </div>
+</div>
+
+<div>
+  <div class="label">Icon buttons</div>
+  <div class="row">
+    <button class="btn btn-icon">+</button>
+    <button class="btn btn-icon" style="background:#1C0F07;color:#FDF8F2">+</button>
+    <button class="btn btn-icon" style="background:#E8F2EA;color:#4A7C59">✓</button>
+    <button class="btn btn-icon" style="background:#FDECEA;color:#C0392B">×</button>
+  </div>
+</div>
+
+</body>
+</html>

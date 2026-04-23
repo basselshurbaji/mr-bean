@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #FDF8F2; font-family: 'DM Sans', sans-serif; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.section { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #8C5340; margin-bottom: 2px; }
+.badge { display: inline-flex; align-items: center; gap: 5px; font-weight: 600; border-radius: 9999px; white-space: nowrap; }
+.sm { font-size: 11px; padding: 3px 9px; }
+.md { font-size: 13px; padding: 5px 12px; }
+.lg { font-size: 14px; padding: 6px 14px; }
+/* Status */
+.success  { background: #E8F2EA; color: #2D5235; }
+.warning  { background: #FEF5DC; color: #7A4E0A; }
+.error    { background: #FDECEA; color: #9B2318; }
+.neutral  { background: #F0E4CC; color: #4A2518; }
+.accent   { background: #1C0F07; color: #FDF8F2; }
+.matcha   { background: #4A7C59; color: #FDF8F2; }
+/* Roast tags */
+.roast-light  { background: #F8E4B8; color: #7A4E0A; }
+.roast-medium { background: #D4872A; color: #FDF8F2; }
+.roast-dark   { background: #2D1810; color: #FDF8F2; }
+/* Taste */
+.taste { background: #FAF3E8; color: #4A2518; border: 1px solid #E8D8B8; }
+/* Dot indicator */
+.dot-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; color: #1C0F07; }
+.dot { width: 8px; height: 8px; border-radius: 50%; }
+</style>
+</head>
+<body>
+
+<div>
+  <div class="section">Status badges</div>
+  <div class="row">
+    <div class="badge md success">✓ Dialed in</div>
+    <div class="badge md warning">Dialing in</div>
+    <div class="badge md error">Needs work</div>
+    <div class="badge md neutral">Draft</div>
+    <div class="badge md accent">✦ Prediction ready</div>
+    <div class="badge md matcha">New bean</div>
+  </div>
+</div>
+
+<div>
+  <div class="section">Roast level</div>
+  <div class="row">
+    <div class="badge md roast-light">Light roast</div>
+    <div class="badge md roast-medium">Medium roast</div>
+    <div class="badge md roast-dark">Dark roast</div>
+  </div>
+</div>
+
+<div>
+  <div class="section">Tasting note chips</div>
+  <div class="row">
+    <div class="badge sm taste">Blueberry</div>
+    <div class="badge sm taste">Bright citrus</div>
+    <div class="badge sm taste">Caramel</div>
+    <div class="badge sm taste">Chocolate</div>
+    <div class="badge sm taste">Floral</div>
+    <div class="badge sm taste">Nutty</div>
+    <div class="badge sm taste">Earthy</div>
+    <div class="badge sm taste">Stone fruit</div>
+  </div>
+</div>
+
+<div>
+  <div class="section">Dot indicators</div>
+  <div class="row">
+    <div class="dot-badge"><div class="dot" style="background:#4A7C59"></div> Extraction good</div>
+    <div class="dot-badge"><div class="dot" style="background:#D68910"></div> Slightly under</div>
+    <div class="dot-badge"><div class="dot" style="background:#C0392B"></div> Over-extracted</div>
+    <div class="dot-badge"><div class="dot" style="background:#B07060"></div> No data yet</div>
+  </div>
+</div>
+
+<div>
+  <div class="section">Sizes</div>
+  <div class="row">
+    <div class="badge sm success">Small</div>
+    <div class="badge md success">Medium</div>
+    <div class="badge lg success">Large</div>
+  </div>
+</div>
+
+</body>
+</html>

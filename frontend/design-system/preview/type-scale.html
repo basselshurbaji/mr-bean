@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #FDF8F2; font-family: 'DM Sans', sans-serif; padding: 20px 24px; }
+.row { display: flex; align-items: baseline; gap: 16px; padding: 8px 0; border-bottom: 1px solid #F0E4CC; }
+.row:last-child { border-bottom: none; }
+.meta { width: 120px; flex-shrink: 0; }
+.token { font-size: 10px; font-weight: 600; color: #8C5340; font-family: monospace; letter-spacing: 0.04em; }
+.size  { font-size: 10px; color: #B07060; margin-top: 2px; }
+.specimen { flex: 1; color: #1C0F07; line-height: 1.15; }
+</style>
+</head>
+<body>
+<div class="row">
+  <div class="meta"><div class="token">--text-5xl</div><div class="size">64px · Display</div></div>
+  <div class="specimen" style="font-family:'Playfair Display',serif;font-size:64px;font-weight:900;letter-spacing:-0.02em">Espresso</div>
+</div>
+<div class="row">
+  <div class="meta"><div class="token">--text-4xl</div><div class="size">48px · Display</div></div>
+  <div class="specimen" style="font-family:'Playfair Display',serif;font-size:48px;font-weight:700;letter-spacing:-0.02em">Perfect Shot</div>
+</div>
+<div class="row">
+  <div class="meta"><div class="token">--text-3xl</div><div class="size">38px · Display</div></div>
+  <div class="specimen" style="font-family:'Playfair Display',serif;font-size:38px;font-weight:600;letter-spacing:-0.02em">Dial it in</div>
+</div>
+<div class="row">
+  <div class="meta"><div class="token">--text-2xl</div><div class="size">30px · Body</div></div>
+  <div class="specimen" style="font-size:30px;font-weight:600">Your bean history</div>
+</div>
+<div class="row">
+  <div class="meta"><div class="token">--text-xl</div><div class="size">24px · Body</div></div>
+  <div class="specimen" style="font-size:24px;font-weight:500">Today's extractions</div>
+</div>
+<div class="row">
+  <div class="meta"><div class="token">--text-lg</div><div class="size">20px · Body</div></div>
+  <div class="specimen" style="font-size:20px;font-weight:500">Ethiopian Yirgacheffe</div>
+</div>
+<div class="row">
+  <div class="meta"><div class="token">--text-md</div><div class="size">17px · Body</div></div>
+  <div class="specimen" style="font-size:17px;font-weight:400">Grind size prediction ready</div>
+</div>
+<div class="row">
+  <div class="meta"><div class="token">--text-base</div><div class="size">15px · Body</div></div>
+  <div class="specimen" style="font-size:15px;font-weight:400">Your last 5 shots of this bean averaged 27.2s extraction time.</div>
+</div>
+<div class="row">
+  <div class="meta"><div class="token">--text-sm</div><div class="size">13px · Label</div></div>
+  <div class="specimen" style="font-size:13px;font-weight:500;color:#6B3A2A">Dose weight · Yield · Time</div>
+</div>
+<div class="row">
+  <div class="meta"><div class="token">--text-xs</div><div class="size">11px · Caption</div></div>
+  <div class="specimen" style="font-size:11px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:#8C5340">Extraction log · 3 days ago</div>
+</div>
+</body>
+</html>
