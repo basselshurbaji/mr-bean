@@ -1,8 +1,6 @@
 # Mr. Bean — Claude Instructions
 
-This file is for AI assistants working on this repo. It describes architecture rules, coding conventions, and patterns to follow. For project setup and stack overview, see `README.md`.
-
-> Every folder in this repo has a `README.md` explaining what it contains and what should go there. Keep them updated when adding new features or moving code.
+This file is for AI assistants working on this repo. It describes architecture rules, coding conventions, and patterns to follow. For project setup and stack overview, see `backend/README.md`.
 
 > Always format Markdown tables with aligned columns — pad cells with spaces so all `|` separators line up vertically. Apply this to every table in every file, including `CLAUDE.md` itself.
 
