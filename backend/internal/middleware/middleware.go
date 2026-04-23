@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-// Tag is a string identifier for a named middleware. Handlers declare which
+// Tag is a string identifier for named middleware. Handlers declare which
 // Tags they require; the router resolves them to concrete handler functions.
 type Tag string
 

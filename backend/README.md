@@ -8,15 +8,27 @@ Go HTTP API server.
 |--------------|-------------------------------|
 | Language     | Go                            |
 | HTTP router  | chi                           |
-| Database     | PostgreSQL                    |
+| Database     | PostgreSQL & Goose            |
 | Query layer  | sqlc (codegen)                |
 | Auth         | JWT (access + refresh tokens) |
 
 ## Running
 
 ```bash
+# make sure you're in backend dir
 cd backend
-go run ./cmd/server
+
+# run a clean build
+make clean build
+
+# run docker compose for needed dependencies (postgres)
+docker compose up -d --build
+
+# run db migrations to create needed tables
+make migrate
+
+# run web server (or through an ide for debugging)
+make run
 ```
 
 Environment variables can be set in a `.env` file in `backend/`.
@@ -69,11 +81,12 @@ backend/
 │   └── sqlc/       sqlc output — never edit by hand
 └── internal/
     ├── handler/    Handler[Req,Res] interface definition only
-    ├── router/     chi wiring: Adapt, Register, RegisterProtected, NewRouter
-    ├── principal/  shared context helper for user ID
+    ├── router/     chi wiring
+    ├── principal/  shared context helper
     ├── auth/       JWT tokens, login/refresh handlers, middleware
+    ├── middleware/ Custom middleware registration
     ├── health/     health check endpoint
-    └── user/       user repo, service, and /user/me handler
+    └── user/       user repo, service, and handlers
 ```
 
 ## Adding a New Feature
