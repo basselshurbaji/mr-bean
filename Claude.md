@@ -61,16 +61,6 @@ Handler → Service → Repo
 
 Each layer depends on the **interface** of the layer below, never the concrete type. No layer imports another layer's package directly — they communicate through interfaces and domain structs defined locally or in `internal/principal`.
 
-### Import cycle rule
-
-When two features would create a circular import, break the cycle by:
-1. Defining a narrow interface in the **consuming** package (not the implementing one)
-2. Writing a small adapter in `cmd/server/main.go` that satisfies that interface
-
-Example: `auth` needs user credentials but must not import `user`. Solution: `auth` defines `UserStore` with its own `StoredUser` struct. `main.go` provides `userStoreAdapter` that wraps `user.UserRepo`.
-
-Never introduce a shared `domain` or `types` package just to avoid a cycle — solve it with interfaces.
-
 ---
 
 ## Handler Contract

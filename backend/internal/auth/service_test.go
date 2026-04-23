@@ -9,15 +9,20 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/basselshurbaji/mr_bean/backend/internal/auth"
+	"github.com/basselshurbaji/mr_bean/backend/internal/user"
 )
 
 type mockUserStore struct {
-	user *auth.StoredUser
+	user *user.User
 	err  error
 }
 
-func (m *mockUserStore) GetByEmail(_ context.Context, _ string) (*auth.StoredUser, error) {
+func (m *mockUserStore) GetByEmail(_ context.Context, _ string) (*user.User, error) {
 	return m.user, m.err
+}
+
+func (m *mockUserStore) GetByID(_ context.Context, _ string) (*user.User, error) {
+	return nil, nil
 }
 
 func hashedPassword(t *testing.T, plain string) string {
@@ -29,14 +34,14 @@ func hashedPassword(t *testing.T, plain string) string {
 	return string(h)
 }
 
-func newTestAuthService(store auth.UserStore) auth.AuthService {
+func newTestAuthService(store user.UserRepo) auth.AuthService {
 	tokens := auth.NewTokenService("test-secret", time.Minute, time.Hour)
 	return auth.NewAuthService(store, tokens)
 }
 
 func TestAuthService_Login_HappyPath(t *testing.T) {
 	store := &mockUserStore{
-		user: &auth.StoredUser{
+		user: &user.User{
 			ID:           "user-123",
 			PasswordHash: hashedPassword(t, "correct-password"),
 			IsActive:     true,
@@ -64,7 +69,7 @@ func TestAuthService_Login_UserNotFound(t *testing.T) {
 
 func TestAuthService_Login_WrongPassword(t *testing.T) {
 	store := &mockUserStore{
-		user: &auth.StoredUser{
+		user: &user.User{
 			ID:           "user-123",
 			PasswordHash: hashedPassword(t, "correct-password"),
 			IsActive:     true,
@@ -79,7 +84,7 @@ func TestAuthService_Login_WrongPassword(t *testing.T) {
 
 func TestAuthService_Login_InactiveUser(t *testing.T) {
 	store := &mockUserStore{
-		user: &auth.StoredUser{
+		user: &user.User{
 			ID:           "user-123",
 			PasswordHash: hashedPassword(t, "password"),
 			IsActive:     false,

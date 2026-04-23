@@ -5,19 +5,9 @@ import (
 	"errors"
 
 	"golang.org/x/crypto/bcrypt"
+
+	"github.com/basselshurbaji/mr_bean/backend/internal/user"
 )
-
-// UserStore is the minimal interface auth needs for credential validation.
-type UserStore interface {
-	GetByEmail(ctx context.Context, email string) (*StoredUser, error)
-}
-
-// StoredUser carries only what auth needs — ID, hashed password, active flag.
-type StoredUser struct {
-	ID           string
-	PasswordHash string
-	IsActive     bool
-}
 
 type AuthService interface {
 	Login(ctx context.Context, email, password string) (accessToken, refreshToken string, err error)
@@ -25,11 +15,11 @@ type AuthService interface {
 }
 
 type authService struct {
-	users  UserStore
+	users  user.UserRepo
 	tokens TokenService
 }
 
-func NewAuthService(users UserStore, tokens TokenService) AuthService {
+func NewAuthService(users user.UserRepo, tokens TokenService) AuthService {
 	return &authService{users: users, tokens: tokens}
 }
 

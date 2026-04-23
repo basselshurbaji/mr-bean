@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"log"
@@ -16,23 +15,6 @@ import (
 	"github.com/basselshurbaji/mr_bean/backend/internal/router"
 	"github.com/basselshurbaji/mr_bean/backend/internal/user"
 )
-
-// userStoreAdapter adapts user.UserRepo to auth.UserStore.
-type userStoreAdapter struct {
-	repo user.UserRepo
-}
-
-func (a *userStoreAdapter) GetByEmail(ctx context.Context, email string) (*auth.StoredUser, error) {
-	u, err := a.repo.GetByEmail(ctx, email)
-	if err != nil {
-		return nil, err
-	}
-	return &auth.StoredUser{
-		ID:           u.ID,
-		PasswordHash: u.PasswordHash,
-		IsActive:     u.IsActive,
-	}, nil
-}
 
 func main() {
 	_ = godotenv.Load()
@@ -55,7 +37,7 @@ func main() {
 
 	userRepo := user.NewPgUserRepo(db)
 	tokenSvc := auth.NewTokenService(cfg.Auth.JWTSecret, cfg.Auth.JWTExpiry, cfg.Auth.RefreshExpiry)
-	authSvc := auth.NewAuthService(&userStoreAdapter{repo: userRepo}, tokenSvc)
+	authSvc := auth.NewAuthService(userRepo, tokenSvc)
 	userSvc := user.NewUserService(userRepo)
 
 	r := router.NewRouter()
