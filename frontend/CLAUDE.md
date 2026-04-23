@@ -115,3 +115,15 @@ npm start               # Expo Go / QR code
 - No hardcoded colours or font names — always go through `src/theme`
 - `StyleSheet.create` for all styles; no inline style objects in JSX
 - Auth screens live outside `(tabs)` — gate in `app/index.tsx` by checking auth state
+
+### Safe area
+
+`SafeAreaProvider` lives in `app/_layout.tsx` (root). Every screen must handle its own insets — the navigators do **not** do this automatically when `headerShown: false`.
+
+| Pattern                                       | When to use                                                                             |
+|-----------------------------------------------|-----------------------------------------------------------------------------------------|
+| `<SafeAreaView edges={['top']} …>`            | Simple screens with a plain `View` root (Home, Beans, etc.)                             |
+| `<SafeAreaView edges={['top', 'bottom']} …>`  | Auth screens inside `KeyboardAvoidingView` (wrap KAV, not replace it)                  |
+| `useSafeAreaInsets()` → apply `insets.top`    | Screens with an absolute-positioned overlay (e.g. toast) where SAV can't be outermost  |
+
+Never hardcode status-bar offsets. Import from `react-native-safe-area-context` (already in deps).

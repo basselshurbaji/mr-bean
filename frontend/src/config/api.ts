@@ -17,6 +17,13 @@ interface ApiError {
   error: string;
 }
 
+export class ApiResponseError extends Error {
+  constructor(public readonly status: number, message: string) {
+    super(message);
+    this.name = 'ApiResponseError';
+  }
+}
+
 export async function apiFetch<Res, Body = unknown>(
   path: string,
   options: RequestOptions<Body> = {}
@@ -36,7 +43,7 @@ export async function apiFetch<Res, Body = unknown>(
   const json = await res.json();
 
   if (!res.ok) {
-    throw new Error((json as ApiError).error ?? `HTTP ${res.status}`);
+    throw new ApiResponseError(res.status, (json as ApiError).error ?? `HTTP ${res.status}`);
   }
 
   return json as Res;

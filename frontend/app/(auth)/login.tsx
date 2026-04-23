@@ -9,6 +9,7 @@ import {
   View,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRef, useState } from 'react';
 import { router } from 'expo-router';
 import Svg, { Defs, RadialGradient, Stop, Path } from 'react-native-svg';
@@ -136,8 +137,9 @@ export default function LoginScreen() {
   }
 
   return (
+    <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
     <KeyboardAvoidingView
-      style={styles.screen}
+      style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView
@@ -294,6 +296,7 @@ export default function LoginScreen() {
         <View style={styles.bottomPad} />
       </ScrollView>
     </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
