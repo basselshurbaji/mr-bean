@@ -83,6 +83,7 @@ export default function LoginScreen() {
   function switchMode(next: Mode) {
     setMode(next);
     setError(null);
+    setForm(f => ({ firstName: '', lastName: '', email: f.email, password: '', confirm: '' }));
   }
 
   const canSubmit =
