@@ -12,6 +12,7 @@ import (
 type AuthService interface {
 	Login(ctx context.Context, email, password string) (accessToken, refreshToken string, err error)
 	Refresh(ctx context.Context, rawRefreshToken string) (accessToken, refreshToken string, err error)
+	Register(ctx context.Context, firstName, lastName, email, password string) (accessToken, refreshToken string, err error)
 }
 
 type authService struct {
@@ -62,6 +63,30 @@ func (s *authService) Refresh(ctx context.Context, rawRefreshToken string) (stri
 	}
 
 	refreshToken, err := s.tokens.GenerateRefreshToken(claims.UserID)
+	if err != nil {
+		return "", "", err
+	}
+
+	return accessToken, refreshToken, nil
+}
+
+func (s *authService) Register(ctx context.Context, firstName, lastName, email, password string) (string, string, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", "", err
+	}
+
+	u, err := s.users.Create(ctx, firstName, lastName, email, string(hash))
+	if err != nil {
+		return "", "", errors.New("email already registered")
+	}
+
+	accessToken, err := s.tokens.GenerateAccessToken(u.ID)
+	if err != nil {
+		return "", "", err
+	}
+
+	refreshToken, err := s.tokens.GenerateRefreshToken(u.ID)
 	if err != nil {
 		return "", "", err
 	}

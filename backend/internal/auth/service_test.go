@@ -13,8 +13,10 @@ import (
 )
 
 type mockUserStore struct {
-	user *user.User
-	err  error
+	user        *user.User
+	err         error
+	createdUser *user.User
+	createErr   error
 }
 
 func (m *mockUserStore) GetByEmail(_ context.Context, _ string) (*user.User, error) {
@@ -23,6 +25,10 @@ func (m *mockUserStore) GetByEmail(_ context.Context, _ string) (*user.User, err
 
 func (m *mockUserStore) GetByID(_ context.Context, _ string) (*user.User, error) {
 	return nil, nil
+}
+
+func (m *mockUserStore) Create(_ context.Context, _, _, _, _ string) (*user.User, error) {
+	return m.createdUser, m.createErr
 }
 
 func hashedPassword(t *testing.T, plain string) string {
@@ -121,5 +127,29 @@ func TestAuthService_Refresh_InvalidToken(t *testing.T) {
 
 	if _, _, err := svc.Refresh(context.Background(), "not-a-token"); err == nil {
 		t.Error("expected error for invalid refresh token")
+	}
+}
+
+func TestAuthService_Register_HappyPath(t *testing.T) {
+	store := &mockUserStore{
+		createdUser: &user.User{ID: "new-user-123", IsActive: true},
+	}
+	svc := newTestAuthService(store)
+
+	access, refresh, err := svc.Register(context.Background(), "Jane", "Doe", "jane@example.com", "password123")
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if access == "" || refresh == "" {
+		t.Error("expected non-empty tokens")
+	}
+}
+
+func TestAuthService_Register_DuplicateEmail(t *testing.T) {
+	store := &mockUserStore{createErr: errors.New("unique constraint violation")}
+	svc := newTestAuthService(store)
+
+	if _, _, err := svc.Register(context.Background(), "Jane", "Doe", "existing@example.com", "password123"); err == nil {
+		t.Error("expected error for duplicate email")
 	}
 }

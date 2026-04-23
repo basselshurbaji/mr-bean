@@ -46,6 +46,7 @@ func main() {
 		router.Adapt(health.NewHandler()),
 		router.Adapt(auth.NewLoginHandler(authSvc)),
 		router.Adapt(auth.NewRefreshHandler(authSvc)),
+		router.Adapt(auth.NewRegisterHandler(authSvc)),
 	} {
 		router.Register(r, route)
 	}

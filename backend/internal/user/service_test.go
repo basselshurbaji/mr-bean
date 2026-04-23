@@ -22,6 +22,10 @@ func (m *mockUserRepo) GetByID(_ context.Context, _ string) (*user.User, error) 
 	return m.u, m.err
 }
 
+func (m *mockUserRepo) Create(_ context.Context, _, _, _, _ string) (*user.User, error) {
+	return nil, nil
+}
+
 func TestUserService_GetByID_Found(t *testing.T) {
 	expected := &user.User{ID: "user-123", Email: "a@b.com", CreatedAt: time.Now()}
 	svc := user.NewUserService(&mockUserRepo{u: expected})

@@ -22,6 +22,7 @@ type User struct {
 type UserRepo interface {
 	GetByEmail(ctx context.Context, email string) (*User, error)
 	GetByID(ctx context.Context, id string) (*User, error)
+	Create(ctx context.Context, firstName, lastName, email, passwordHash string) (*User, error)
 }
 
 type pgUserRepo struct {
@@ -42,6 +43,19 @@ func (r *pgUserRepo) GetByEmail(ctx context.Context, email string) (*User, error
 
 func (r *pgUserRepo) GetByID(ctx context.Context, id string) (*User, error) {
 	row, err := r.q.GetUserByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return rowToUser(row), nil
+}
+
+func (r *pgUserRepo) Create(ctx context.Context, firstName, lastName, email, passwordHash string) (*User, error) {
+	row, err := r.q.CreateUser(ctx, db.CreateUserParams{
+		FirstName:    firstName,
+		LastName:     lastName,
+		Email:        email,
+		PasswordHash: passwordHash,
+	})
 	if err != nil {
 		return nil, err
 	}
