@@ -8,9 +8,10 @@ import (
 )
 
 type Config struct {
-	Port string
-	DB   DBConfig
-	Auth AuthConfig
+	Port   string
+	DB     DBConfig
+	Auth   AuthConfig
+	Mailer MailerConfig
 }
 
 type DBConfig struct {
@@ -26,6 +27,14 @@ type AuthConfig struct {
 	JWTSecret     string
 	JWTExpiry     time.Duration
 	RefreshExpiry time.Duration
+}
+
+type MailerConfig struct {
+	Host     string
+	Port     string
+	Username string
+	Password string
+	From     string
 }
 
 func (d DBConfig) DSN() string {
@@ -52,6 +61,13 @@ func Load() Config {
 			JWTSecret:     secret,
 			JWTExpiry:     getMinutes("JWT_EXPIRY", 1),
 			RefreshExpiry: getMinutes("REFRESH_EXPIRY", 1440),
+		},
+		Mailer: MailerConfig{
+			Host:     getEnv("SMTP_HOST", "smtp.gmail.com"),
+			Port:     getEnv("SMTP_PORT", "587"),
+			Username: getEnv("SMTP_USERNAME", ""),
+			Password: getEnv("SMTP_PASSWORD", ""),
+			From:     getEnv("SMTP_FROM", ""),
 		},
 	}
 }

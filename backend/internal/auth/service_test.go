@@ -9,8 +9,15 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/basselshurbaji/mr_bean/backend/internal/auth"
+	"github.com/basselshurbaji/mr_bean/backend/internal/mailer"
 	"github.com/basselshurbaji/mr_bean/backend/internal/user"
 )
+
+type mockMailer struct{}
+
+func (m *mockMailer) Send(_ context.Context, _ mailer.Email) error {
+	return nil
+}
 
 type mockUserStore struct {
 	user        *user.User
@@ -50,7 +57,7 @@ func hashedPassword(t *testing.T, plain string) string {
 
 func newTestAuthService(store user.UserRepo) auth.AuthService {
 	tokens := auth.NewTokenService("test-secret", time.Minute, time.Hour)
-	return auth.NewAuthService(store, tokens)
+	return auth.NewAuthService(store, tokens, &mockMailer{})
 }
 
 func TestAuthService_Login_HappyPath(t *testing.T) {
@@ -114,7 +121,7 @@ func TestAuthService_Login_InactiveUser(t *testing.T) {
 func TestAuthService_Refresh_HappyPath(t *testing.T) {
 	store := &mockUserStore{}
 	tokens := auth.NewTokenService("test-secret", time.Minute, time.Hour)
-	svc := auth.NewAuthService(store, tokens)
+	svc := auth.NewAuthService(store, tokens, &mockMailer{})
 
 	refreshToken, err := tokens.GenerateRefreshToken("user-123")
 	if err != nil {

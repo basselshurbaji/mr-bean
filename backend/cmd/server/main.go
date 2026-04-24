@@ -12,6 +12,7 @@ import (
 	"github.com/basselshurbaji/mr_bean/backend/config"
 	"github.com/basselshurbaji/mr_bean/backend/internal/auth"
 	"github.com/basselshurbaji/mr_bean/backend/internal/health"
+	"github.com/basselshurbaji/mr_bean/backend/internal/mailer"
 	appmiddleware "github.com/basselshurbaji/mr_bean/backend/internal/middleware"
 	"github.com/basselshurbaji/mr_bean/backend/internal/router"
 	"github.com/basselshurbaji/mr_bean/backend/internal/user"
@@ -38,7 +39,8 @@ func main() {
 
 	userRepo := user.NewPgUserRepo(db)
 	tokenSvc := auth.NewTokenService(cfg.Auth.JWTSecret, cfg.Auth.JWTExpiry, cfg.Auth.RefreshExpiry)
-	authSvc := auth.NewAuthService(userRepo, tokenSvc)
+	mailerSvc := mailer.NewSMTPMailer(cfg.Mailer.Host, cfg.Mailer.Port, cfg.Mailer.Username, cfg.Mailer.Password, cfg.Mailer.From)
+	authSvc := auth.NewAuthService(userRepo, tokenSvc, mailerSvc)
 	userSvc := user.NewUserService(userRepo)
 
 	appmiddleware.Register(appmiddleware.TagAuthenticated, auth.Middleware(tokenSvc))
