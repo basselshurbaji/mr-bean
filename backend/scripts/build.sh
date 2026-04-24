@@ -1,11 +1,11 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
 [[ -f .env ]] && set -a && source .env && set +a
 
-echo "→ Generating sqlc..."s
+echo "→ Generating sqlc..."
 SQLC="$(go env GOPATH)/bin/sqlc"
 if [ ! -f "$SQLC" ]; then
     echo "sqlc not found. Run: go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest"
