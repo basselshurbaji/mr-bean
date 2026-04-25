@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mr. Bean — Your Beans</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  height: 100%; background: #2D1810;
+  font-family: 'DM Sans', sans-serif;
+  display: flex; align-items: center; justify-content: center; overflow: hidden;
+}
+.phone {
+  width: 390px; height: 844px; background: #FDF8F2; border-radius: 54px; position: relative;
+  box-shadow: 0 0 0 2px #3A200E, 0 0 0 8px #1C0F07, 0 32px 80px rgba(0,0,0,0.65), inset 0 0 0 1px rgba(255,255,255,0.06);
+  overflow: hidden;
+}
+.notch { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 126px; height: 37px; background: #1C0F07; border-radius: 0 0 22px 22px; z-index: 100; }
+
+/* Layout regions */
+.status-bar { position: absolute; top: 0; left: 0; right: 0; height: 54px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 30px 10px; z-index: 10; }
+.main-scroll { position: absolute; top: 54px; bottom: 88px; left: 0; right: 0; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+.main-scroll::-webkit-scrollbar { display: none; }
+.bottom-nav { position: absolute; bottom: 0; left: 0; right: 0; height: 88px; background: rgba(253,248,242,0.94); backdrop-filter: blur(20px); border-top: 1px solid #F0E4CC; display: flex; align-items: flex-start; justify-content: space-around; padding-top: 12px; z-index: 50; }
+.nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; padding: 4px 14px; border-radius: 12px; background: none; border: none; outline: none; transition: transform 150ms ease; }
+.nav-item:active { transform: scale(0.91); }
+.nav-label { font-size: 10px; font-weight: 600; letter-spacing: 0.03em; }
+.nav-item.active .nav-label { color: #1C0F07; }
+.nav-item:not(.active) .nav-label { color: #C4A882; }
+
+/* Sheet */
+.backdrop { position: absolute; inset: 0; background: rgba(28,15,7,0.42); z-index: 80; display: flex; align-items: flex-end; }
+.sheet { width: 100%; background: #FDF8F2; border-radius: 28px 28px 0 0; box-shadow: 0 -4px 32px rgba(28,15,7,0.16); max-height: 92%; overflow-y: auto; animation: slideUp 300ms cubic-bezier(0.33,1,0.68,1); }
+.sheet::-webkit-scrollbar { display: none; }
+.handle { width: 36px; height: 4px; background: #D8C4A0; border-radius: 9999px; margin: 14px auto 22px; }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+/* Forms */
+.field-label { font-size: 13px; font-weight: 500; color: #6B3A2A; display: block; margin-bottom: 6px; }
+.input { height: 50px; padding: 0 16px; width: 100%; background: #FAF3E8; border: 1.5px solid #E8D8B8; border-radius: 14px; font-family: 'DM Sans', sans-serif; font-size: 15px; color: #1C0F07; outline: none; transition: border-color 150ms, box-shadow 150ms; }
+.input:focus { border-color: #D4872A; box-shadow: 0 0 0 3px rgba(212,135,42,0.12); }
+.input::placeholder { color: #C4A882; }
+textarea.input { height: auto; padding: 14px 16px; resize: none; line-height: 1.5; }
+
+/* Buttons */
+.btn-primary { height: 54px; border-radius: 32px; border: none; background: #1C0F07; color: #FDF8F2; font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%; transition: transform 150ms, background 150ms; }
+.btn-primary:active { transform: scale(0.97); background: #2D1810; }
+.btn-primary:disabled { opacity: 0.38; cursor: default; }
+
+/* Toast */
+.toast { position: absolute; bottom: 104px; left: 20px; right: 20px; background: #1C0F07; color: #FDF8F2; border-radius: 16px; padding: 14px 18px; font-size: 14px; font-weight: 500; z-index: 200; text-align: center; animation: slideUp 260ms cubic-bezier(0.33,1,0.68,1); }
+
+/* Misc */
+.display { font-family: 'Playfair Display', serif; }
+.badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 9999px; font-size: 11px; font-weight: 600; }
+.screen-push { animation: pushIn 260ms cubic-bezier(0.33,1,0.68,1); }
+@keyframes pushIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch"></div>
+  <div id="root" style="width:100%;height:100%;position:relative;"></div>
+</div>
+
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+// ─── Hardcoded lists ──────────────────────────────────────────────────────────
+const PROCESSES = [
+  { id: 'washed',    label: 'Washed'    },
+  { id: 'natural',   label: 'Natural'   },
+  { id: 'honey',     label: 'Honey'     },
+  { id: 'anaerobic', label: 'Anaerobic' },
+  { id: 'other',     label: 'Other'     },
+];
+
+// Colors map to existing design system tokens:
+// light → caramel-400, medium_light → caramel-600,
+// medium → espresso-500, medium_dark → espresso-600, dark → espresso-800
+const ROAST_LEVELS = [
+  { id: 'light',        label: 'Light',        color: '#D4872A' },
+  { id: 'medium_light', label: 'Medium light',  color: '#9B5E1A' },
+  { id: 'medium',       label: 'Medium',        color: '#6B3A2A' },
+  { id: 'medium_dark',  label: 'Medium dark',   color: '#4A2518' },
+  { id: 'dark',         label: 'Dark',          color: '#1C0F07' },
+];
+
+const uid = () => 'b' + Math.random().toString(36).slice(2, 7);
+
+const INIT_BEANS = [
+  {
+    id: 'b1',
+    name: 'Ethiopia Yirgacheffe',
+    roaster: 'Onyx Coffee Lab',
+    origin: 'Ethiopia, Yirgacheffe',
+    process: 'washed',
+    roast_level: 'light',
+    tasting_notes: 'Jasmine, bergamot, peach.',
+    notes: 'Best pulled at 1:2.5 ratio.',
+  },
+  {
+    id: 'b2',
+    name: 'Colombia Huila',
+    roaster: 'Blue Bottle Coffee',
+    origin: 'Colombia, Huila',
+    process: 'natural',
+    roast_level: 'medium',
+    tasting_notes: 'Dark chocolate, dried cherry, brown sugar.',
+    notes: '',
+  },
+  {
+    id: 'b3',
+    name: 'Brazil Cerrado',
+    roaster: 'Intelligentsia',
+    origin: 'Brazil, Cerrado Mineiro',
+    process: 'honey',
+    roast_level: 'medium_dark',
+    tasting_notes: 'Hazelnut, caramel, low acidity.',
+    notes: 'Great for milk drinks. High dose works well.',
+  },
+];
+
+// ─── SVG: coffee bean mark ────────────────────────────────────────────────────
+const BeanMark = ({ size = 22, color = '#FDF8F2' }) => {
+  const creaseStroke = color === '#FDF8F2' ? '#1C0F07' : '#FDF8F2';
+  return (
+    <svg width={size} height={Math.round(size * 1.09)} viewBox="0 0 20 22" fill="none">
+      <ellipse cx="10" cy="11" rx="7.5" ry="9" fill={color}/>
+      <path d="M10 3 C10.8 6.5 8.5 11 10 19"
+        stroke={creaseStroke} strokeOpacity="0.22" strokeWidth="1.3" strokeLinecap="round" fill="none"/>
+    </svg>
+  );
+};
+
+// ─── Roast level bubble ───────────────────────────────────────────────────────
+const RoastBubble = ({ roastId, size = 48 }) => {
+  const lvl = ROAST_LEVELS.find(r => r.id === roastId);
+  const bg = lvl ? lvl.color : '#D8C4A0';
+  const iconColor = lvl ? '#FDF8F2' : '#8C5340';
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: Math.round(size * 0.38),
+      background: bg, display: 'flex', alignItems: 'center',
+      justifyContent: 'center', flexShrink: 0,
+    }}>
+      <BeanMark size={Math.round(size * 0.46)} color={iconColor}/>
+    </div>
+  );
+};
+
+// ─── Status bar ───────────────────────────────────────────────────────────────
+const StatusBar = () => (
+  <div className="status-bar">
+    <span style={{ fontSize:15, fontWeight:600, color:'#1C0F07', letterSpacing:'-0.2px' }}>9:41</span>
+    <span style={{ fontSize:12, color:'#1C0F07', opacity:0.7 }}>●●● WiFi ▪▪</span>
+  </div>
+);
+
+// ─── Bottom nav ───────────────────────────────────────────────────────────────
+const NAV = [
+  { id:'home',  label:'Home',    d:'M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z M9 22V12h6v10' },
+  { id:'gear',  label:'My Gear', d:'M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z' },
+  { id:'beans', label:'Beans',   d:'M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 002 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z' },
+  { id:'stats', label:'Stats',   d:'M18 20V10 M12 20V4 M6 20v-6' },
+];
+
+const BottomNav = ({ active, onNav }) => (
+  <nav className="bottom-nav">
+    {NAV.map(it => (
+      <button key={it.id} className={`nav-item ${active === it.id ? 'active' : ''}`} onClick={() => onNav(it.id)}>
+        <svg width={22} height={22} viewBox="0 0 24 24" fill="none"
+          stroke={active === it.id ? '#1C0F07' : '#C4A882'}
+          strokeWidth={active === it.id ? 2.5 : 2} strokeLinecap="round" strokeLinejoin="round">
+          <path d={it.d}/>
+        </svg>
+        <span className="nav-label">{it.label}</span>
+      </button>
+    ))}
+  </nav>
+);
+
+// ─── Icon buttons ─────────────────────────────────────────────────────────────
+const CloseBtn = ({ onClick }) => (
+  <button onClick={onClick} style={{ width:34, height:34, borderRadius:17, background:'#F0E4CC', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+    <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="#6B3A2A" strokeWidth={2.5} strokeLinecap="round">
+      <path d="M18 6L6 18 M6 6l12 12"/>
+    </svg>
+  </button>
+);
+
+const BackBtn = ({ onClick }) => (
+  <button onClick={onClick} style={{ width:38, height:38, borderRadius:19, background:'#F0E4CC', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#1C0F07" strokeWidth={2} strokeLinecap="round">
+      <path d="M19 12H5 M12 19l-7-7 7-7"/>
+    </svg>
+  </button>
+);
+
+// ─── Chip pickers ─────────────────────────────────────────────────────────────
+const ChipPicker = ({ options, value, onChange }) => (
+  <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
+    {options.map(opt => {
+      const active = value === opt.id;
+      return (
+        <button key={opt.id} onClick={() => onChange(active ? null : opt.id)} style={{
+          height:32, padding:'0 14px', borderRadius:9999,
+          border:`1.5px solid ${active ? '#1C0F07' : '#E8D8B8'}`,
+          background: active ? '#1C0F07' : 'transparent',
+          color: active ? '#FDF8F2' : '#6B3A2A',
+          fontSize:13, fontWeight:600, cursor:'pointer',
+          fontFamily:'DM Sans,sans-serif', transition:'all 150ms',
+        }}>
+          {opt.label}
+        </button>
+      );
+    })}
+  </div>
+);
+
+const RoastChipPicker = ({ value, onChange }) => (
+  <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
+    {ROAST_LEVELS.map(lvl => {
+      const active = value === lvl.id;
+      return (
+        <button key={lvl.id} onClick={() => onChange(active ? null : lvl.id)} style={{
+          height:32, padding:'0 12px 0 10px', borderRadius:9999,
+          border:`1.5px solid ${active ? '#1C0F07' : '#E8D8B8'}`,
+          background: active ? '#1C0F07' : 'transparent',
+          color: active ? '#FDF8F2' : '#6B3A2A',
+          fontSize:13, fontWeight:600, cursor:'pointer',
+          fontFamily:'DM Sans,sans-serif', transition:'all 150ms',
+          display:'flex', alignItems:'center', gap:6,
+        }}>
+          <div style={{
+            width:10, height:10, borderRadius:5, flexShrink:0,
+            background: active ? '#FDF8F2' : lvl.color,
+            transition:'background 150ms',
+          }}/>
+          {lvl.label}
+        </button>
+      );
+    })}
+  </div>
+);
+
+// ─── Tasting note chips (detail view) ────────────────────────────────────────
+const TastingChips = ({ notes }) => {
+  const chips = notes.split(/,\s*/).map(s => s.replace(/\.\s*$/, '').trim()).filter(Boolean);
+  return (
+    <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+      {chips.map((chip, i) => (
+        <span key={i} style={{ background:'#F0E4CC', color:'#4A2518', fontSize:12, fontWeight:600, padding:'4px 10px', borderRadius:9999 }}>
+          {chip}
+        </span>
+      ))}
+    </div>
+  );
+};
+
+// ─── Bean card ────────────────────────────────────────────────────────────────
+const BeanCard = ({ bean, onClick }) => {
+  const proc = PROCESSES.find(p => p.id === bean.process);
+  const roast = ROAST_LEVELS.find(r => r.id === bean.roast_level);
+  return (
+    <button onClick={onClick} style={{
+      background:'#FAF3E8', borderRadius:20, padding:'14px 16px',
+      boxShadow:'0 2px 8px rgba(28,15,7,0.07)', border:'none', cursor:'pointer',
+      textAlign:'left', display:'flex', alignItems:'center', gap:14,
+      transition:'transform 150ms', width:'100%',
+    }}
+    onMouseDown={e => e.currentTarget.style.transform='scale(0.98)'}
+    onMouseUp={e => e.currentTarget.style.transform='scale(1)'}
+    onMouseLeave={e => e.currentTarget.style.transform='scale(1)'}>
+
+      <RoastBubble roastId={bean.roast_level} size={50}/>
+
+      <div style={{ flex:1, minWidth:0 }}>
+        <div style={{ fontSize:15, fontWeight:600, color:'#1C0F07' }}>{bean.name}</div>
+        {(bean.roaster || bean.origin) && (
+          <div style={{ fontSize:12, color:'#8C5340', marginTop:2 }}>
+            {bean.roaster}{bean.roaster && bean.origin ? ` · ${bean.origin}` : bean.origin}
+          </div>
+        )}
+        {bean.tasting_notes && (
+          <div style={{ fontSize:12, color:'#B07060', marginTop:3, overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis' }}>
+            {bean.tasting_notes}
+          </div>
+        )}
+      </div>
+
+      <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:6, flexShrink:0 }}>
+        {proc && <span className="badge" style={{ background:'#F0E4CC', color:'#4A2518', fontSize:10 }}>{proc.label}</span>}
+        {roast && <span style={{ fontSize:11, color:'#C4A882' }}>{roast.label}</span>}
+      </div>
+    </button>
+  );
+};
+
+// ─── Bean detail screen ───────────────────────────────────────────────────────
+const BeanDetail = ({ bean, onBack, onEdit, onDelete }) => {
+  const proc = PROCESSES.find(p => p.id === bean.process);
+  const roast = ROAST_LEVELS.find(r => r.id === bean.roast_level);
+  return (
+    <div className="screen-push" style={{ paddingBottom:24 }}>
+
+      {/* Nav row */}
+      <div style={{ padding:'12px 20px 0', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+        <BackBtn onClick={onBack}/>
+        <button onClick={onEdit} style={{ height:34, padding:'0 16px', borderRadius:17, background:'#F0E4CC', border:'none', cursor:'pointer', fontSize:13, fontWeight:600, color:'#1C0F07', fontFamily:'DM Sans,sans-serif' }}>
+          Edit
+        </button>
+      </div>
+
+      {/* Hero */}
+      <div style={{ padding:'20px 24px 24px', display:'flex', gap:18, alignItems:'flex-start' }}>
+        <RoastBubble roastId={bean.roast_level} size={72}/>
+        <div style={{ flex:1, minWidth:0 }}>
+          <div style={{ display:'flex', gap:6, marginBottom:10, flexWrap:'wrap' }}>
+            {proc && (
+              <span className="badge" style={{ background:'#F0E4CC', color:'#4A2518' }}>
+                {proc.label}
+              </span>
+            )}
+            {roast && (
+              <span className="badge" style={{ background:roast.color, color:'#FDF8F2' }}>
+                {roast.label}
+              </span>
+            )}
+          </div>
+          <h2 className="display" style={{ fontSize:26, fontWeight:700, color:'#1C0F07', lineHeight:1.15 }}>
+            {bean.name}
+          </h2>
+          {bean.roaster && (
+            <p style={{ fontSize:14, color:'#6B3A2A', marginTop:5 }}>{bean.roaster}</p>
+          )}
+          {bean.origin && (
+            <p style={{ fontSize:13, color:'#B07060', marginTop:2 }}>{bean.origin}</p>
+          )}
+        </div>
+      </div>
+
+      {/* Tasting notes card */}
+      {bean.tasting_notes && (
+        <div style={{ margin:'0 20px 14px', background:'#FAF3E8', borderRadius:20, padding:'18px 20px', boxShadow:'0 2px 8px rgba(28,15,7,0.07)' }}>
+          <p style={{ fontSize:10, fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', color:'#8C5340', marginBottom:12 }}>
+            Tasting notes
+          </p>
+          <TastingChips notes={bean.tasting_notes}/>
+        </div>
+      )}
+
+      {/* Personal notes card */}
+      {bean.notes && (
+        <div style={{ margin:'0 20px 14px', background:'#FAF3E8', borderRadius:20, padding:'18px 20px', boxShadow:'0 2px 8px rgba(28,15,7,0.07)' }}>
+          <p style={{ fontSize:10, fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', color:'#8C5340', marginBottom:8 }}>
+            Notes
+          </p>
+          <p style={{ fontSize:14, color:'#1C0F07', lineHeight:1.65 }}>{bean.notes}</p>
+        </div>
+      )}
+
+      {/* Remove button */}
+      <div style={{ padding:'8px 20px' }}>
+        <button onClick={onDelete}
+          style={{ width:'100%', height:48, borderRadius:32, border:'1.5px solid #FDECEA', background:'#FDECEA', color:'#C0392B', fontFamily:'DM Sans,sans-serif', fontSize:15, fontWeight:600, cursor:'pointer', transition:'background 150ms' }}
+          onMouseEnter={e => e.currentTarget.style.background='#f5c6c2'}
+          onMouseLeave={e => e.currentTarget.style.background='#FDECEA'}>
+          Remove this bean
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// ─── Add / Edit bean sheet ────────────────────────────────────────────────────
+const AddBeanSheet = ({ existing, onClose, onSave }) => {
+  const [form, setForm] = useState(existing ? {
+    name: existing.name,
+    roaster: existing.roaster || '',
+    origin: existing.origin || '',
+    process: existing.process || null,
+    roast_level: existing.roast_level || null,
+    tasting_notes: existing.tasting_notes || '',
+    notes: existing.notes || '',
+  } : {
+    name: '', roaster: '', origin: '',
+    process: null, roast_level: null,
+    tasting_notes: '', notes: '',
+  });
+
+  const upd = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const canSave = form.name.trim().length > 0;
+
+  const handleSave = () => {
+    if (!canSave) return;
+    onSave({ id: existing ? existing.id : uid(), ...form, name: form.name.trim() });
+    onClose();
+  };
+
+  return (
+    <div className="backdrop" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="sheet">
+        <div className="handle"/>
+        <div style={{ padding:'0 24px' }}>
+
+          {/* Header */}
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:24 }}>
+            <h2 className="display" style={{ fontSize:24, fontWeight:700, color:'#1C0F07', lineHeight:1.1 }}>
+              {existing ? 'Edit bean' : 'Add a bean'}
+            </h2>
+            <CloseBtn onClick={onClose}/>
+          </div>
+
+          {/* Name */}
+          <div style={{ marginBottom:16 }}>
+            <label className="field-label">Name <span style={{ color:'#C4782A' }}>*</span></label>
+            <input className="input" placeholder="e.g. Ethiopia Yirgacheffe" value={form.name} onChange={e => upd('name', e.target.value)} autoFocus/>
+          </div>
+
+          {/* Roaster + Origin */}
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:16 }}>
+            <div>
+              <label className="field-label">Roaster</label>
+              <input className="input" placeholder="e.g. Onyx" value={form.roaster} onChange={e => upd('roaster', e.target.value)}/>
+            </div>
+            <div>
+              <label className="field-label">Origin</label>
+              <input className="input" placeholder="e.g. Ethiopia" value={form.origin} onChange={e => upd('origin', e.target.value)}/>
+            </div>
+          </div>
+
+          {/* Process */}
+          <div style={{ marginBottom:20 }}>
+            <label className="field-label" style={{ marginBottom:10 }}>Process</label>
+            <ChipPicker options={PROCESSES} value={form.process} onChange={v => upd('process', v)}/>
+          </div>
+
+          {/* Roast level */}
+          <div style={{ marginBottom:20 }}>
+            <label className="field-label" style={{ marginBottom:10 }}>Roast level</label>
+            <RoastChipPicker value={form.roast_level} onChange={v => upd('roast_level', v)}/>
+          </div>
+
+          {/* Tasting notes */}
+          <div style={{ marginBottom:16 }}>
+            <label className="field-label">Tasting notes</label>
+            <textarea className="input" rows={2} placeholder="e.g. Jasmine, bergamot, peach." value={form.tasting_notes} onChange={e => upd('tasting_notes', e.target.value)}/>
+          </div>
+
+          {/* Personal notes */}
+          <div style={{ marginBottom:28 }}>
+            <label className="field-label">Notes</label>
+            <textarea className="input" rows={2} placeholder="Your impressions, ratios, anything worth remembering." value={form.notes} onChange={e => upd('notes', e.target.value)}/>
+          </div>
+
+          <button className="btn-primary" onClick={handleSave} disabled={!canSave} style={{ marginBottom:32 }}>
+            {existing ? 'Save changes' : 'Add to your beans'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── Beans screen ─────────────────────────────────────────────────────────────
+const BeansScreen = ({ beans, onEdit, onDelete }) => {
+  const [detail, setDetail] = useState(null);
+
+  const liveBean = detail ? (beans.find(b => b.id === detail.id) || null) : null;
+
+  if (liveBean) {
+    return (
+      <BeanDetail
+        bean={liveBean}
+        onBack={() => setDetail(null)}
+        onEdit={() => onEdit(liveBean)}
+        onDelete={() => { onDelete(liveBean.id); setDetail(null); }}
+      />
+    );
+  }
+
+  return (
+    <div>
+      {/* Header */}
+      <div style={{ padding:'12px 24px 20px' }}>
+        <h1 className="display" style={{ fontSize:34, fontWeight:900, color:'#1C0F07', letterSpacing:'-0.7px', lineHeight:1.1 }}>
+          Your beans
+        </h1>
+        <p style={{ fontSize:13, color:'#8C5340', marginTop:5 }}>
+          {beans.length === 0
+            ? 'Your library is empty'
+            : `${beans.length} bean${beans.length !== 1 ? 's' : ''} in your library`}
+        </p>
+      </div>
+
+      {/* Empty state */}
+      {beans.length === 0 && (
+        <div style={{ textAlign:'center', padding:'52px 24px', color:'#B07060' }}>
+          <div style={{ fontSize:40, marginBottom:14 }}>🫘</div>
+          <div style={{ fontSize:16, fontWeight:600, color:'#1C0F07', marginBottom:6 }}>No beans on deck.</div>
+          <div style={{ fontSize:13 }}>Time to fix that, don't you think?</div>
+        </div>
+      )}
+
+      {/* List */}
+      {beans.length > 0 && (
+        <div style={{ display:'flex', flexDirection:'column', gap:10, padding:'0 20px' }}>
+          {beans.map(bean => (
+            <BeanCard key={bean.id} bean={bean} onClick={() => setDetail(bean)}/>
+          ))}
+        </div>
+      )}
+
+      <div style={{ height:80 }}/>
+    </div>
+  );
+};
+
+// ─── App ──────────────────────────────────────────────────────────────────────
+const App = () => {
+  const [nav, setNav] = useState('beans');
+  const [beans, setBeans] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('mrbean_beans')) || INIT_BEANS; }
+    catch { return INIT_BEANS; }
+  });
+  const [sheet, setSheet] = useState(null); // null | 'add' | bean object
+  const [toast, setToast] = useState(null);
+
+  useEffect(() => {
+    localStorage.setItem('mrbean_beans', JSON.stringify(beans));
+  }, [beans]);
+
+  const showToast = msg => { setToast(msg); setTimeout(() => setToast(null), 2600); };
+
+  const addBean = bean => {
+    setBeans(b => [...b, bean]);
+    showToast(`${bean.name} added ✓`);
+  };
+
+  const saveBean = bean => {
+    setBeans(b => {
+      const i = b.findIndex(x => x.id === bean.id);
+      if (i >= 0) { const a = [...b]; a[i] = bean; return a; }
+      return [...b, bean];
+    });
+    showToast(`${bean.name} updated ✓`);
+  };
+
+  const deleteBean = id => {
+    setBeans(b => b.filter(x => x.id !== id));
+    showToast('Removed from your beans.');
+  };
+
+  const isEditObj = s => s && typeof s === 'object';
+
+  return (
+    <div style={{ width:'100%', height:'100%', position:'relative' }}>
+      <StatusBar/>
+
+      <div className="main-scroll">
+        {nav === 'beans' ? (
+          <BeansScreen
+            beans={beans}
+            onEdit={bean => setSheet(bean)}
+            onDelete={deleteBean}
+          />
+        ) : (
+          <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'100%', minHeight:400, color:'#C4A882' }}>
+            <div style={{ fontSize:36, marginBottom:14 }}>☕</div>
+            <div style={{ fontSize:14, fontWeight:500 }}>Tap Beans to explore</div>
+          </div>
+        )}
+      </div>
+
+      <BottomNav active={nav} onNav={setNav}/>
+
+      {/* FAB — only on beans tab */}
+      {nav === 'beans' && (
+        <button onClick={() => setSheet('add')}
+          style={{ position:'absolute', bottom:100, right:22, width:56, height:56, borderRadius:28, background:'#1C0F07', border:'none', cursor:'pointer', zIndex:60, boxShadow:'0 6px 20px rgba(28,15,7,0.38)', display:'flex', alignItems:'center', justifyContent:'center', transition:'transform 220ms cubic-bezier(0.34,1.56,0.64,1)' }}
+          onMouseDown={e => e.currentTarget.style.transform='scale(0.93)'}
+          onMouseUp={e => e.currentTarget.style.transform='scale(1)'}
+          onMouseLeave={e => e.currentTarget.style.transform='scale(1)'}>
+          <svg width={24} height={24} viewBox="0 0 24 24" fill="none" stroke="#FDF8F2" strokeWidth={2.5} strokeLinecap="round">
+            <path d="M12 5v14 M5 12h14"/>
+          </svg>
+        </button>
+      )}
+
+      {/* Sheets */}
+      {sheet === 'add' && <AddBeanSheet onClose={() => setSheet(null)} onSave={addBean}/>}
+      {isEditObj(sheet) && <AddBeanSheet existing={sheet} onClose={() => setSheet(null)} onSave={saveBean}/>}
+
+      {/* Toast */}
+      {toast && <div className="toast">{toast}</div>}
+    </div>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
