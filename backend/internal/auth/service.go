@@ -95,11 +95,14 @@ func (s *authService) Register(ctx context.Context, firstName, lastName, email, 
 	}
 
 	go func() {
+		type WelcomeData struct {
+			FirstName string
+		}
 		if err := s.mailer.Send(context.Background(), mailer.Email{
 			To:       email,
 			Subject:  "Welcome to Mr. Bean",
 			Template: "welcome.html",
-			Data:     mailer.WelcomeData{FirstName: firstName},
+			Data:     WelcomeData{FirstName: firstName},
 		}); err != nil {
 			log.Printf("send welcome email to %s: %v", email, err)
 		}

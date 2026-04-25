@@ -9,10 +9,6 @@ type Email struct {
 	Data     any
 }
 
-type WelcomeData struct {
-	FirstName string
-}
-
 type Mailer interface {
 	Send(ctx context.Context, email Email) error
 }
