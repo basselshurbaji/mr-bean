@@ -9,6 +9,7 @@ import {
 import { useCallback, useRef, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Feather } from '@expo/vector-icons';
 import { colors, palette, radii, spacing } from '@/src/theme';
 import { useGear } from '@/src/context/GearContext';
 import { GearItem, Station } from '@/src/api/gear';
@@ -166,6 +167,8 @@ export default function GearScreen() {
   const [filterType, setFilterType] = useState('all');
   const [activeSheet, setActiveSheet] = useState<ActiveSheet | null>(null);
 
+  const fabScale = useRef(new Animated.Value(1)).current;
+
   const presentTypes = ['all', ...Array.from(new Set(gear.map(g => g.type_id)))];
   const filteredGear =
     filterType === 'all' ? gear : gear.filter(g => g.type_id === filterType);
@@ -244,14 +247,6 @@ export default function GearScreen() {
                 </Text>
               </View>
             }
-            ListFooterComponent={
-              <Pressable
-                style={({ pressed }) => [styles.addGearBtn, pressed && { backgroundColor: palette.cream300 }]}
-                onPress={() => setActiveSheet({ type: 'add-gear' })}
-              >
-                <Text style={styles.addGearLabel}>+ Add gear</Text>
-              </Pressable>
-            }
             renderItem={({ item }) => (
               <GearCard
                 item={item}
@@ -279,14 +274,6 @@ export default function GearScreen() {
               </Text>
             </View>
           }
-          ListFooterComponent={
-            <Pressable
-              style={({ pressed }) => [styles.addStationBtn, pressed && { backgroundColor: palette.cream300 }]}
-              onPress={() => setActiveSheet({ type: 'add-station' })}
-            >
-              <Text style={styles.addStationLabel}>+ New station</Text>
-            </Pressable>
-          }
           renderItem={({ item }) => (
             <StationCard
               station={item}
@@ -295,6 +282,22 @@ export default function GearScreen() {
           )}
         />
       )}
+
+      {/* FAB */}
+      <Pressable
+        style={styles.fab}
+        onPressIn={() =>
+          Animated.spring(fabScale, { toValue: 0.93, useNativeDriver: true, damping: 8, stiffness: 180 }).start()
+        }
+        onPressOut={() =>
+          Animated.spring(fabScale, { toValue: 1, useNativeDriver: true, damping: 8, stiffness: 180 }).start()
+        }
+        onPress={() => setActiveSheet(activeTab === 'gear' ? { type: 'add-gear' } : { type: 'add-station' })}
+      >
+        <Animated.View style={[styles.fabInner, { transform: [{ scale: fabScale }] }]}>
+          <Feather name="plus" size={24} color={palette.cream100} />
+        </Animated.View>
+      </Pressable>
 
       {/* Sheets */}
       {activeSheet?.type === 'add-gear' && (
@@ -533,36 +536,23 @@ const styles = StyleSheet.create({
     color: colors.fgSecondary,
   },
 
-  addStationBtn: {
-    height: 54,
-    borderRadius: radii.lg,
-    borderWidth: 1.5,
-    borderColor: palette.cream500,
-    borderStyle: 'dashed',
+  fab: {
+    position: 'absolute',
+    bottom: 12,
+    right: 22,
+  },
+  fabInner: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: palette.espresso800,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 4,
-  },
-  addStationLabel: {
-    fontFamily: 'DMSans_700Bold',
-    fontSize: 14,
-    color: colors.fgSecondary,
-  },
-
-  addGearBtn: {
-    height: 54,
-    borderRadius: radii.lg,
-    borderWidth: 1.5,
-    borderColor: palette.cream500,
-    borderStyle: 'dashed',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 4,
-  },
-  addGearLabel: {
-    fontFamily: 'DMSans_700Bold',
-    fontSize: 14,
-    color: colors.fgSecondary,
+    shadowColor: palette.espresso800,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.38,
+    shadowRadius: 20,
+    elevation: 8,
   },
 
   empty: {
