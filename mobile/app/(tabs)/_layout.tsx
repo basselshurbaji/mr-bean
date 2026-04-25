@@ -32,6 +32,13 @@ export default function TabsLayout() {
           }}
         />
         <Tabs.Screen
+          name="gear"
+          options={{
+            title: 'My Gear',
+            tabBarIcon: ({ color, size }) => <Feather name="tool" size={size} color={color} />,
+          }}
+        />
+        <Tabs.Screen
           name="profile"
           options={{
             title: 'Profile',

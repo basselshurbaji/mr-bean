@@ -40,10 +40,11 @@ export async function apiFetch<Res, Body = unknown>(
     signal,
   });
 
-  const json = await res.json();
+  const text = await res.text();
+  const json = text ? (JSON.parse(text) as unknown) : undefined;
 
   if (!res.ok) {
-    throw new ApiResponseError(res.status, (json as ApiError).error ?? `HTTP ${res.status}`);
+    throw new ApiResponseError(res.status, (json as ApiError)?.error ?? `HTTP ${res.status}`);
   }
 
   return json as Res;

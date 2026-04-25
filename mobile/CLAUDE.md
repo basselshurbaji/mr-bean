@@ -1,4 +1,4 @@
-# Mr. Bean — Frontend
+# Mr. Bean — Mobile
 
 React Native / Expo cross-platform app (iOS, Android, Web). Talks to the Go backend at `../backend` over HTTP.
 
@@ -32,10 +32,26 @@ app/                        Expo Router screens
     _layout.tsx             Bottom tab navigator
     index.tsx               Home
     beans.tsx               Bean library
+    gear/
+      _layout.tsx           Stack layout for gear screens
+      index.tsx             My Gear screen (gear list + stations)
+      [id].tsx              Gear item detail / edit screen
+      GearSheet.tsx         Bottom sheet — add / edit a gear item
+      StationSheet.tsx      Bottom sheet — add / edit a station
 assets/                     Images, splash, icon
 src/
+  api/
+    gear.ts                 Gear + station API calls (gearApi)
+  components/
+    GearIcon.tsx            Icon resolver by gear type_id
   config/
     api.ts                  API_URL constant + apiFetch helper
+  context/
+    GearContext.tsx         Gear + station state provider
+    UserContext.tsx         Auth / user state provider
+  lib/
+    apiClient.ts            authorizedFetch — token refresh logic
+    auth.ts                 Secure-store token helpers
   theme/
     colors.ts               Design system color tokens → RN values
     typography.ts           Font families, sizes, line heights, text styles
@@ -49,13 +65,13 @@ scripts/
 
 ## Design system
 
-Design tokens live in `design/design-system/` — use `src/theme/` which is the RN translation.
+Design tokens live in `../product/design/design-system/` — use `src/theme/` which is the RN translation.
 
-- **Colors**: `src/theme/colors.ts` — mirrors `design/design-system/colors_and_type.css`
+- **Colors**: `src/theme/colors.ts` — mirrors `../product/design/design-system/colors_and_type.css`
 - **Typography**: `src/theme/typography.ts` — Playfair Display (display), DM Sans (body), JetBrains Mono (data)
 - **Spacing / Radii / Shadows**: `src/theme/spacing.ts`
-- **Brand & voice**: `design/design-system/README.md`
-- **Component specs**: `design/design_handoff_login/`, `design/design_handoff_profile/`, `design/design_handoff_my_gear/`
+- **Brand & voice**: `../product/design/design-system/README.md`
+- **Component specs**: `../product/design/design_handoff_login/`, `../product/design/design_handoff_profile/`, `../product/design/design_handoff_my_gear/`
   - Each folder has an HTML prototype (`*.html`) and a `README.md` spec. Always read the README before implementing a screen.
 
 Always `import { colors, textStyles, spacing, radii, shadows } from '@/src/theme'` — never hardcode hex values.
@@ -69,15 +85,23 @@ Configured in `app.config.ts` → `extra.apiUrl` → consumed by `src/config/api
 
 Known endpoints (backend default port 8080):
 
-| Method | Path                  | Auth   | Notes                                  |
-|--------|-----------------------|--------|----------------------------------------|
-| POST   | /auth/register        | public | First name, last name, email, password |
-| POST   | /auth/login           | public | Returns access + refresh tokens        |
-| POST   | /auth/refresh         | public | Rotate refresh token                   |
-| GET    | /user/me              | bearer | Current user profile                   |
-| PATCH  | /user/me              | bearer | Update profile                         |
-| POST   | /user/change-password | bearer | Change password                        |
-| GET    | /health               | public | Liveness check                         |
+| Method | Path                      | Auth   | Notes                                  |
+|--------|---------------------------|--------|----------------------------------------|
+| POST   | /auth/register            | public | First name, last name, email, password |
+| POST   | /auth/login               | public | Returns access + refresh tokens        |
+| POST   | /auth/refresh             | public | Rotate refresh token                   |
+| GET    | /user/me                  | bearer | Current user profile                   |
+| PATCH  | /user/me                  | bearer | Update profile                         |
+| POST   | /user/change-password     | bearer | Change password                        |
+| GET    | /health                   | public | Liveness check                         |
+| GET    | /gear                     | bearer | List all gear items                    |
+| POST   | /gear                     | bearer | Create a gear item                     |
+| PUT    | /gear/:id                 | bearer | Update a gear item                     |
+| DELETE | /gear/:id                 | bearer | Delete a gear item (returns 204)       |
+| GET    | /stations                 | bearer | List all stations                      |
+| POST   | /stations                 | bearer | Create a station                       |
+| PUT    | /stations/:id             | bearer | Update a station                       |
+| DELETE | /stations/:id             | bearer | Delete a station (returns 204)         |
 
 Use `apiFetch` from `src/config/api.ts` for all requests. Pass the JWT as `token` option.
 
