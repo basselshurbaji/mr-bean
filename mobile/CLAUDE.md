@@ -65,13 +65,13 @@ scripts/
 
 ## Design system
 
-Design tokens live in `../product/design/design-system/` — use `src/theme/` which is the RN translation.
+Design tokens live in `../design/design-system/` — use `src/theme/` which is the RN translation.
 
-- **Colors**: `src/theme/colors.ts` — mirrors `../product/design/design-system/colors_and_type.css`
+- **Colors**: `src/theme/colors.ts` — mirrors `../design/design-system/colors_and_type.css`
 - **Typography**: `src/theme/typography.ts` — Playfair Display (display), DM Sans (body), JetBrains Mono (data)
 - **Spacing / Radii / Shadows**: `src/theme/spacing.ts`
-- **Brand & voice**: `../product/design/design-system/README.md`
-- **Component specs**: `../product/design/design_handoff_login/`, `../product/design/design_handoff_profile/`, `../product/design/design_handoff_my_gear/`
+- **Brand & voice**: `../design/design-system/README.md`
+- **Component specs**: `../design/design_handoff_login/`, `../design/design_handoff_profile/`, `../design/design_handoff_my_gear/`
   - Each folder has an HTML prototype (`*.html`) and a `README.md` spec. Always read the README before implementing a screen.
 
 Always `import { colors, textStyles, spacing, radii, shadows } from '@/src/theme'` — never hardcode hex values.
