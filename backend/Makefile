@@ -7,6 +7,7 @@ run:
 	@go run ./cmd/server
 
 test:
+	@bash scripts/build.sh
 	@bash scripts/test.sh
 
 migrate:
