@@ -136,6 +136,8 @@ export default function StationSheet({ gear, editStation, onClose, onSaved, onDe
                   onFocus={() => setFocused(true)}
                   onBlur={() => setFocused(false)}
                   returnKeyType="done"
+                  textContentType="none"
+                  autoComplete="off"
                 />
               </View>
 

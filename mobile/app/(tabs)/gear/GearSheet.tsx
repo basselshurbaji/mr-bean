@@ -164,6 +164,8 @@ export default function GearSheet({ editItem, onClose, onSaved }: Props) {
                     onFocus={() => setFocused('name')}
                     onBlur={() => setFocused(null)}
                     returnKeyType="next"
+                    textContentType="none"
+                    autoComplete="off"
                   />
                 </View>
 
@@ -180,6 +182,8 @@ export default function GearSheet({ editItem, onClose, onSaved }: Props) {
                       onFocus={() => setFocused('brand')}
                       onBlur={() => setFocused(null)}
                       returnKeyType="next"
+                      textContentType="none"
+                      autoComplete="off"
                     />
                   </View>
                   <View style={styles.rowCol}>
@@ -193,6 +197,8 @@ export default function GearSheet({ editItem, onClose, onSaved }: Props) {
                       onFocus={() => setFocused('model')}
                       onBlur={() => setFocused(null)}
                       returnKeyType="next"
+                      textContentType="none"
+                      autoComplete="off"
                     />
                   </View>
                 </View>
@@ -211,6 +217,8 @@ export default function GearSheet({ editItem, onClose, onSaved }: Props) {
                     keyboardType="number-pad"
                     maxLength={4}
                     returnKeyType="next"
+                    textContentType="none"
+                    autoComplete="off"
                   />
                 </View>
 
@@ -228,6 +236,8 @@ export default function GearSheet({ editItem, onClose, onSaved }: Props) {
                     multiline
                     numberOfLines={3}
                     textAlignVertical="top"
+                    textContentType="none"
+                    autoComplete="off"
                   />
                 </View>
 
