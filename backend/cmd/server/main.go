@@ -11,6 +11,7 @@ import (
 
 	"github.com/basselshurbaji/mr_bean/backend/config"
 	"github.com/basselshurbaji/mr_bean/backend/internal/auth"
+	"github.com/basselshurbaji/mr_bean/backend/internal/bean"
 	"github.com/basselshurbaji/mr_bean/backend/internal/gear"
 	"github.com/basselshurbaji/mr_bean/backend/internal/health"
 	"github.com/basselshurbaji/mr_bean/backend/internal/mailer"
@@ -40,11 +41,13 @@ func main() {
 
 	userRepo := user.NewPgUserRepo(db)
 	gearRepo := gear.NewPgGearRepo(db)
+	beanRepo := bean.NewPgBeanRepo(db)
 	tokenSvc := auth.NewTokenService(cfg.Auth.JWTSecret, cfg.Auth.JWTExpiry, cfg.Auth.RefreshExpiry)
 	mailerSvc := mailer.NewSMTPMailer(cfg.Mailer.Host, cfg.Mailer.Port, cfg.Mailer.Username, cfg.Mailer.Password, cfg.Mailer.From)
 	authSvc := auth.NewAuthService(userRepo, tokenSvc, mailerSvc)
 	userSvc := user.NewUserService(userRepo)
 	gearSvc := gear.NewGearService(gearRepo)
+	beanSvc := bean.NewBeanService(beanRepo)
 
 	appmiddleware.Register(appmiddleware.TagAuthenticated, auth.Middleware(tokenSvc))
 
@@ -67,6 +70,10 @@ func main() {
 		router.Adapt(gear.NewCreateStationHandler(gearSvc)),
 		router.Adapt(gear.NewUpdateStationHandler(gearSvc)),
 		router.Adapt(gear.NewDeleteStationHandler(gearSvc)),
+		router.Adapt(bean.NewListBeansHandler(beanSvc)),
+		router.Adapt(bean.NewCreateBeanHandler(beanSvc)),
+		router.Adapt(bean.NewUpdateBeanHandler(beanSvc)),
+		router.Adapt(bean.NewDeleteBeanHandler(beanSvc)),
 	} {
 		router.Register(r, route)
 	}
