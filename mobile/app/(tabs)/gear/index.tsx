@@ -6,7 +6,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import { useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, palette, radii, spacing } from '@/src/theme';
@@ -152,8 +152,15 @@ type ActiveSheet =
 export default function GearScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { gear, stations, addGear, addStation, updateStation, removeStation } = useGear();
+  const { gear, stations, addGear, addStation, updateStation, removeStation, refresh } = useGear();
   const toast = useToast();
+
+  const [refreshing, setRefreshing] = useState(false);
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await refresh();
+    setRefreshing(false);
+  }, [refresh]);
 
   const [activeTab, setActiveTab] = useState<'gear' | 'stations'>('gear');
   const [filterType, setFilterType] = useState('all');
@@ -222,6 +229,8 @@ export default function GearScreen() {
             keyExtractor={g => g.id}
             contentContainerStyle={styles.list}
             showsVerticalScrollIndicator={false}
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
             ListEmptyComponent={
               <View style={styles.empty}>
                 <Text style={styles.emptyEmoji}>⚙️</Text>
@@ -259,6 +268,8 @@ export default function GearScreen() {
           keyExtractor={s => s.id}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
           ListEmptyComponent={
             <View style={styles.empty}>
               <Text style={styles.emptyEmoji}>🗂️</Text>
