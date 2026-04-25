@@ -18,12 +18,16 @@ mr_bean/
 │   │   ├── queries/        # sqlc input — named .sql files, one per domain
 │   │   └── sqlc/           # sqlc output — never edit by hand
 │   └── internal/
-│       ├── handler/        # Handler[Req,Res] interface definition only
-│       ├── router/         # chi wiring: Adapt, Register, RegisterProtected, NewRouter
+│       ├── handler/        # Handler[Req,Res] interface + AppError + NoContent
+│       ├── router/         # chi wiring: Adapt, Register, NewRouter
+│       ├── middleware/     # Tag-based middleware registry (Register, Resolve, TagAuthenticated)
 │       ├── principal/      # shared context helper for user ID (no auth logic)
-│       ├── auth/           # JWT tokens, login/refresh handlers, middleware
+│       ├── auth/           # JWT tokens, login/refresh/register handlers, middleware
 │       ├── health/         # health check endpoint
-│       └── user/           # user repo, service, and /user/me handler
+│       ├── user/           # user repo, service, and /user/me /user/update /user/change-password handlers
+│       ├── gear/           # gear + station repo, service, and CRUD handlers
+│       ├── bean/           # bean repo, service, and CRUD handlers
+│       └── mailer/         # Mailer interface + SMTP implementation
 └── frontend/               # TBD
 ```
 
@@ -70,29 +74,68 @@ Each layer depends on the **interface** of the layer below, never the concrete t
 type Handler[Req, Res any] interface {
     Method() string
     Pattern() string
+    Middlewares() []middleware.Tag        // middleware applied to this route
     Validate(req Req) error              // 422 before Serve if non-nil
     Serve(ctx context.Context, req Req) (Res, error)
 }
+
+// Return an *AppError from Serve to send a specific HTTP status instead of 500.
+type AppError struct {
+    Code int
+    Msg  string
+}
+
+// Return NoContent from Serve to send HTTP 204 with no body.
+type NoContent struct{}
 ```
 
 - `context.Context` is always the first argument to `Serve` — it carries the request context and any middleware-injected values (e.g. user ID via `principal`).
 - No HTTP types (`http.Request`, `http.ResponseWriter`) appear in handler implementations.
 - `chi` and `net/http` are fully contained in `internal/router/router.go`.
-- GET request structs use `schema` tags; body request structs use `json` tags.
+- GET request structs use `schema` tags; body request structs use `json` tags; chi URL path params use `url` tags.
+- DELETE handlers receive no body.
+
+### Middleware tags
+
+Handlers declare which middleware they need by returning `[]middleware.Tag` from `Middlewares()`. The router resolves tags to concrete middleware at startup — unregistered tags panic immediately.
+
+Currently defined tags:
+
+| Tag                            | Effect                                           |
+|--------------------------------|--------------------------------------------------|
+| `middleware.TagAuthenticated`  | Validates Bearer token, sets user ID in context  |
+
+Register middleware once at startup before `router.NewRouter()`:
+
+```go
+appmiddleware.Register(appmiddleware.TagAuthenticated, auth.Middleware(tokenSvc))
+```
 
 ### Registration
 
+All routes use the same flat registration — no separate "protected" group:
+
 ```go
-// public routes
+// public — Middlewares() returns nil
 router.Register(r, router.Adapt(auth.NewLoginHandler(authSvc)))
 
-// protected routes (wrapped with auth middleware)
-router.RegisterProtected(r, auth.Middleware(tokenSvc),
-    router.Adapt(user.NewMeHandler(userSvc)),
-)
+// authenticated — Middlewares() returns []middleware.Tag{middleware.TagAuthenticated}
+router.Register(r, router.Adapt(user.NewMeHandler(userSvc)))
 ```
 
-Adding an endpoint = one `router.Adapt(...)` call. No other wiring required.
+In practice, all routes are registered in a single loop:
+
+```go
+for _, route := range []router.Route{
+    router.Adapt(auth.NewLoginHandler(authSvc)),
+    router.Adapt(user.NewMeHandler(userSvc)),
+    // ...
+} {
+    router.Register(r, route)
+}
+```
+
+Adding an endpoint = one `router.Adapt(...)` entry. No other wiring required.
 
 ---
 
