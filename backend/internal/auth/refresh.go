@@ -23,10 +23,14 @@ func NewRefreshHandler(auth AuthService) *RefreshHandler {
 	return &RefreshHandler{auth: auth}
 }
 
+// Method implements handler.Handler.
 func (h *RefreshHandler) Method() string              { return "POST" }
+// Pattern implements handler.Handler.
 func (h *RefreshHandler) Pattern() string             { return "/auth/refresh" }
+// Middlewares implements handler.Handler.
 func (h *RefreshHandler) Middlewares() []middleware.Tag { return nil }
 
+// Validate implements handler.Handler.
 func (h *RefreshHandler) Validate(req RefreshRequest) error {
 	if req.RefreshToken == "" {
 		return errValidation("refresh_token is required")
@@ -34,6 +38,7 @@ func (h *RefreshHandler) Validate(req RefreshRequest) error {
 	return nil
 }
 
+// Serve implements handler.Handler.
 func (h *RefreshHandler) Serve(ctx context.Context, req RefreshRequest) (RefreshResponse, error) {
 	access, refresh, err := h.auth.Refresh(ctx, req.RefreshToken)
 	if err != nil {

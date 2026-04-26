@@ -67,6 +67,7 @@ func NewPgGearRepo(d *sql.DB) GearRepo {
 	return &pgGearRepo{db: d, q: db.New(d)}
 }
 
+// ListGear implements GearRepo.
 func (r *pgGearRepo) ListGear(ctx context.Context, userID string) ([]GearItem, error) {
 	rows, err := r.q.ListGearByUserID(ctx, userID)
 	if err != nil {
@@ -79,6 +80,7 @@ func (r *pgGearRepo) ListGear(ctx context.Context, userID string) ([]GearItem, e
 	return items, nil
 }
 
+// GetGear implements GearRepo.
 func (r *pgGearRepo) GetGear(ctx context.Context, id, userID string) (*GearItem, error) {
 	row, err := r.q.GetGearByID(ctx, db.GetGearByIDParams{ID: id, UserID: userID})
 	if err != nil {
@@ -91,6 +93,7 @@ func (r *pgGearRepo) GetGear(ctx context.Context, id, userID string) (*GearItem,
 	return &g, nil
 }
 
+// CreateGear implements GearRepo.
 func (r *pgGearRepo) CreateGear(ctx context.Context, userID string, p CreateGearParams) (*GearItem, error) {
 	row, err := r.q.CreateGear(ctx, db.CreateGearParams{
 		UserID: userID,
@@ -108,6 +111,7 @@ func (r *pgGearRepo) CreateGear(ctx context.Context, userID string, p CreateGear
 	return &g, nil
 }
 
+// UpdateGear implements GearRepo.
 func (r *pgGearRepo) UpdateGear(ctx context.Context, id, userID string, p UpdateGearParams) (*GearItem, error) {
 	row, err := r.q.UpdateGear(ctx, db.UpdateGearParams{
 		ID:     id,
@@ -129,7 +133,8 @@ func (r *pgGearRepo) UpdateGear(ctx context.Context, id, userID string, p Update
 	return &g, nil
 }
 
-// DeleteGear removes a gear item and re-sequences station positions in a transaction.
+// DeleteGear implements GearRepo.
+// It removes a gear item and re-sequences station positions in a transaction.
 func (r *pgGearRepo) DeleteGear(ctx context.Context, id, userID string) error {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -177,6 +182,7 @@ func (r *pgGearRepo) DeleteGear(ctx context.Context, id, userID string) error {
 	return tx.Commit()
 }
 
+// ListStations implements GearRepo.
 func (r *pgGearRepo) ListStations(ctx context.Context, userID string) ([]Station, error) {
 	stationRows, err := r.q.ListStationsByUserID(ctx, userID)
 	if err != nil {
@@ -214,7 +220,8 @@ func (r *pgGearRepo) ListStations(ctx context.Context, userID string) ([]Station
 	return stations, nil
 }
 
-// CreateStation creates the station record and inserts gear associations in a transaction.
+// CreateStation implements GearRepo.
+// It creates the station record and inserts gear associations in a transaction.
 func (r *pgGearRepo) CreateStation(ctx context.Context, userID, name string, gearIDs []string) (*Station, error) {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -252,7 +259,8 @@ func (r *pgGearRepo) CreateStation(ctx context.Context, userID, name string, gea
 	}, nil
 }
 
-// UpdateStation replaces the station name and gear list atomically.
+// UpdateStation implements GearRepo.
+// It replaces the station name and gear list atomically.
 func (r *pgGearRepo) UpdateStation(ctx context.Context, id, userID, name string, gearIDs []string) (*Station, error) {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -297,6 +305,7 @@ func (r *pgGearRepo) UpdateStation(ctx context.Context, id, userID, name string,
 	}, nil
 }
 
+// DeleteStation implements GearRepo.
 func (r *pgGearRepo) DeleteStation(ctx context.Context, id, userID string) error {
 	n, err := r.q.DeleteStationByID(ctx, db.DeleteStationByIDParams{ID: id, UserID: userID})
 	if err != nil {

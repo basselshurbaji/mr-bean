@@ -23,6 +23,7 @@ type AppError struct {
 	Msg  string
 }
 
+// Error implements error.
 func (e *AppError) Error() string { return e.Msg }
 
 // NoContent is the response type for handlers that return HTTP 204 with no body.

@@ -35,6 +35,7 @@ func NewPgUserRepo(d *sql.DB) UserRepo {
 	return &pgUserRepo{q: db.New(d)}
 }
 
+// GetByEmail implements UserRepo.
 func (r *pgUserRepo) GetByEmail(ctx context.Context, email string) (*User, error) {
 	row, err := r.q.GetUserByEmail(ctx, email)
 	if err != nil {
@@ -43,6 +44,7 @@ func (r *pgUserRepo) GetByEmail(ctx context.Context, email string) (*User, error
 	return rowToUser(row), nil
 }
 
+// GetByID implements UserRepo.
 func (r *pgUserRepo) GetByID(ctx context.Context, id string) (*User, error) {
 	row, err := r.q.GetUserByID(ctx, id)
 	if err != nil {
@@ -51,6 +53,7 @@ func (r *pgUserRepo) GetByID(ctx context.Context, id string) (*User, error) {
 	return rowToUser(row), nil
 }
 
+// Create implements UserRepo.
 func (r *pgUserRepo) Create(ctx context.Context, firstName, lastName, email, passwordHash string) (*User, error) {
 	row, err := r.q.CreateUser(ctx, db.CreateUserParams{
 		FirstName:    firstName,
@@ -64,6 +67,7 @@ func (r *pgUserRepo) Create(ctx context.Context, firstName, lastName, email, pas
 	return rowToUser(row), nil
 }
 
+// UpdateProfile implements UserRepo.
 func (r *pgUserRepo) UpdateProfile(ctx context.Context, id, firstName, lastName string) (*User, error) {
 	row, err := r.q.UpdateUserProfile(ctx, db.UpdateUserProfileParams{
 		ID:        id,
@@ -76,6 +80,7 @@ func (r *pgUserRepo) UpdateProfile(ctx context.Context, id, firstName, lastName 
 	return rowToUser(row), nil
 }
 
+// UpdatePassword implements UserRepo.
 func (r *pgUserRepo) UpdatePassword(ctx context.Context, id, passwordHash string) error {
 	return r.q.UpdateUserPassword(ctx, db.UpdateUserPasswordParams{
 		ID:           id,

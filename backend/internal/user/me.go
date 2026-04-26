@@ -27,15 +27,20 @@ func NewMeHandler(users UserService) *MeHandler {
 	return &MeHandler{users: users}
 }
 
+// Method implements handler.Handler.
 func (h *MeHandler) Method() string  { return "GET" }
+// Pattern implements handler.Handler.
 func (h *MeHandler) Pattern() string { return "/user/me" }
 
+// Middlewares implements handler.Handler.
 func (h *MeHandler) Middlewares() []middleware.Tag {
 	return []middleware.Tag{middleware.TagAuthenticated}
 }
 
+// Validate implements handler.Handler.
 func (h *MeHandler) Validate(_ MeRequest) error { return nil }
 
+// Serve implements handler.Handler.
 func (h *MeHandler) Serve(ctx context.Context, _ MeRequest) (MeResponse, error) {
 	userID, ok := principal.UserIDFromContext(ctx)
 	if !ok {

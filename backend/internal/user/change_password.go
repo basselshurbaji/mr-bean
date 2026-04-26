@@ -23,13 +23,17 @@ func NewChangePasswordHandler(users UserService) *ChangePasswordHandler {
 	return &ChangePasswordHandler{users: users}
 }
 
+// Method implements handler.Handler.
 func (h *ChangePasswordHandler) Method() string  { return "POST" }
+// Pattern implements handler.Handler.
 func (h *ChangePasswordHandler) Pattern() string { return "/user/change-password" }
 
+// Middlewares implements handler.Handler.
 func (h *ChangePasswordHandler) Middlewares() []middleware.Tag {
 	return []middleware.Tag{middleware.TagAuthenticated}
 }
 
+// Validate implements handler.Handler.
 func (h *ChangePasswordHandler) Validate(req ChangePasswordRequest) error {
 	if req.OldPassword == "" {
 		return errors.New("old_password is required")
@@ -40,6 +44,7 @@ func (h *ChangePasswordHandler) Validate(req ChangePasswordRequest) error {
 	return nil
 }
 
+// Serve implements handler.Handler.
 func (h *ChangePasswordHandler) Serve(ctx context.Context, req ChangePasswordRequest) (ChangePasswordResponse, error) {
 	userID, ok := principal.UserIDFromContext(ctx)
 	if !ok {

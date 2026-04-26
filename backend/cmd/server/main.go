@@ -15,7 +15,7 @@ import (
 	"github.com/basselshurbaji/mr_bean/backend/internal/gear"
 	"github.com/basselshurbaji/mr_bean/backend/internal/health"
 	"github.com/basselshurbaji/mr_bean/backend/internal/mailer"
-	appmiddleware "github.com/basselshurbaji/mr_bean/backend/internal/middleware"
+	"github.com/basselshurbaji/mr_bean/backend/internal/middleware"
 	"github.com/basselshurbaji/mr_bean/backend/internal/router"
 	"github.com/basselshurbaji/mr_bean/backend/internal/user"
 )
@@ -49,34 +49,30 @@ func main() {
 	gearSvc := gear.NewGearService(gearRepo)
 	beanSvc := bean.NewBeanService(beanRepo)
 
-	appmiddleware.Register(appmiddleware.TagAuthenticated, auth.Middleware(tokenSvc))
+	middleware.Register(middleware.TagAuthenticated, auth.Middleware(tokenSvc))
 
 	r := router.NewRouter()
 
-	for _, route := range []router.Route{
-		router.Adapt(health.NewHandler()),
-		router.Adapt(auth.NewLoginHandler(authSvc)),
-		router.Adapt(auth.NewRefreshHandler(authSvc)),
-		router.Adapt(auth.NewRegisterHandler(authSvc)),
-		router.Adapt(user.NewMeHandler(userSvc)),
-		router.Adapt(user.NewUpdateHandler(userSvc)),
-		router.Adapt(user.NewChangePasswordHandler(userSvc)),
-		router.Adapt(gear.NewListGearHandler(gearSvc)),
-		router.Adapt(gear.NewCreateGearHandler(gearSvc)),
-		router.Adapt(gear.NewGetGearHandler(gearSvc)),
-		router.Adapt(gear.NewUpdateGearHandler(gearSvc)),
-		router.Adapt(gear.NewDeleteGearHandler(gearSvc)),
-		router.Adapt(gear.NewListStationsHandler(gearSvc)),
-		router.Adapt(gear.NewCreateStationHandler(gearSvc)),
-		router.Adapt(gear.NewUpdateStationHandler(gearSvc)),
-		router.Adapt(gear.NewDeleteStationHandler(gearSvc)),
-		router.Adapt(bean.NewListBeansHandler(beanSvc)),
-		router.Adapt(bean.NewCreateBeanHandler(beanSvc)),
-		router.Adapt(bean.NewUpdateBeanHandler(beanSvc)),
-		router.Adapt(bean.NewDeleteBeanHandler(beanSvc)),
-	} {
-		router.Register(r, route)
-	}
+	router.Register(r, health.NewHandler())
+	router.Register(r, auth.NewLoginHandler(authSvc))
+	router.Register(r, auth.NewRefreshHandler(authSvc))
+	router.Register(r, auth.NewRegisterHandler(authSvc))
+	router.Register(r, user.NewMeHandler(userSvc))
+	router.Register(r, user.NewUpdateHandler(userSvc))
+	router.Register(r, user.NewChangePasswordHandler(userSvc))
+	router.Register(r, gear.NewListGearHandler(gearSvc))
+	router.Register(r, gear.NewCreateGearHandler(gearSvc))
+	router.Register(r, gear.NewGetGearHandler(gearSvc))
+	router.Register(r, gear.NewUpdateGearHandler(gearSvc))
+	router.Register(r, gear.NewDeleteGearHandler(gearSvc))
+	router.Register(r, gear.NewListStationsHandler(gearSvc))
+	router.Register(r, gear.NewCreateStationHandler(gearSvc))
+	router.Register(r, gear.NewUpdateStationHandler(gearSvc))
+	router.Register(r, gear.NewDeleteStationHandler(gearSvc))
+	router.Register(r, bean.NewListBeansHandler(beanSvc))
+	router.Register(r, bean.NewCreateBeanHandler(beanSvc))
+	router.Register(r, bean.NewUpdateBeanHandler(beanSvc))
+	router.Register(r, bean.NewDeleteBeanHandler(beanSvc))
 
 	addr := fmt.Sprintf(":%s", cfg.Port)
 	log.Printf("server listening on %s", addr)

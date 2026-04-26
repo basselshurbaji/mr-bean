@@ -19,7 +19,7 @@ mr_bean/
 │   │   └── sqlc/           # sqlc output — never edit by hand
 │   └── internal/
 │       ├── handler/        # Handler[Req,Res] interface + AppError + NoContent
-│       ├── router/         # chi wiring: Adapt, Register, NewRouter
+│       ├── router/         # chi wiring: Router struct, NewRouter, Register[Req,Res]
 │       ├── middleware/     # Tag-based middleware registry (Register, Resolve, TagAuthenticated)
 │       ├── principal/      # shared context helper for user ID (no auth logic)
 │       ├── auth/           # JWT tokens, login/refresh/register handlers, middleware
@@ -67,6 +67,21 @@ Each layer depends on the **interface** of the layer below, never the concrete t
 
 ---
 
+## Go Conventions
+
+### Interface satisfaction
+
+When a method exists solely to satisfy an interface, document it with a standard comment:
+
+```go
+// ServeHTTP implements http.Handler.
+func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) { ... }
+```
+
+Format: `// MethodName implements InterfaceName.`
+
+---
+
 ## Handler Contract
 
 ```go
@@ -105,37 +120,31 @@ Currently defined tags:
 |--------------------------------|--------------------------------------------------|
 | `middleware.TagAuthenticated`  | Validates Bearer token, sets user ID in context  |
 
-Register middleware once at startup before `router.NewRouter()`:
+Register middleware once at startup before constructing the router:
 
 ```go
-appmiddleware.Register(appmiddleware.TagAuthenticated, auth.Middleware(tokenSvc))
+middleware.Register(middleware.TagAuthenticated, auth.Middleware(tokenSvc))
 ```
 
 ### Registration
 
+`router.Register` is a generic free function — it takes a `*Router` and any `handler.Handler[Req, Res]`. No intermediate `Route` type or `Adapt` call is needed.
+
 All routes use the same flat registration — no separate "protected" group:
 
 ```go
+r := router.NewRouter()
+
 // public — Middlewares() returns nil
-router.Register(r, router.Adapt(auth.NewLoginHandler(authSvc)))
+router.Register(r, auth.NewLoginHandler(authSvc))
 
 // authenticated — Middlewares() returns []middleware.Tag{middleware.TagAuthenticated}
-router.Register(r, router.Adapt(user.NewMeHandler(userSvc)))
+router.Register(r, user.NewMeHandler(userSvc))
 ```
 
-In practice, all routes are registered in a single loop:
+`*Router` implements `http.Handler`, so pass it directly to `http.ListenAndServe`.
 
-```go
-for _, route := range []router.Route{
-    router.Adapt(auth.NewLoginHandler(authSvc)),
-    router.Adapt(user.NewMeHandler(userSvc)),
-    // ...
-} {
-    router.Register(r, route)
-}
-```
-
-Adding an endpoint = one `router.Adapt(...)` entry. No other wiring required.
+Adding an endpoint = one `router.Register(r, ...)` call. No other wiring required.
 
 ---
 

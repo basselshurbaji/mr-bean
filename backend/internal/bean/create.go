@@ -44,17 +44,22 @@ func NewCreateBeanHandler(svc BeanService) *CreateBeanHandler {
 	return &CreateBeanHandler{svc: svc}
 }
 
+// Method implements handler.Handler.
 func (h *CreateBeanHandler) Method() string  { return "POST" }
+// Pattern implements handler.Handler.
 func (h *CreateBeanHandler) Pattern() string { return "/beans" }
 
+// Middlewares implements handler.Handler.
 func (h *CreateBeanHandler) Middlewares() []middleware.Tag {
 	return []middleware.Tag{middleware.TagAuthenticated}
 }
 
+// Validate implements handler.Handler.
 func (h *CreateBeanHandler) Validate(req CreateBeanRequest) error {
 	return validateBeanFields(req.Name, req.Process, req.RoastLevel)
 }
 
+// Serve implements handler.Handler.
 func (h *CreateBeanHandler) Serve(ctx context.Context, req CreateBeanRequest) (BeanResponse, error) {
 	userID, ok := principal.UserIDFromContext(ctx)
 	if !ok {

@@ -30,13 +30,17 @@ func NewUpdateHandler(users UserService) *UpdateHandler {
 	return &UpdateHandler{users: users}
 }
 
+// Method implements handler.Handler.
 func (h *UpdateHandler) Method() string  { return "PATCH" }
+// Pattern implements handler.Handler.
 func (h *UpdateHandler) Pattern() string { return "/user/me" }
 
+// Middlewares implements handler.Handler.
 func (h *UpdateHandler) Middlewares() []middleware.Tag {
 	return []middleware.Tag{middleware.TagAuthenticated}
 }
 
+// Validate implements handler.Handler.
 func (h *UpdateHandler) Validate(req UpdateRequest) error {
 	if req.FirstName == "" && req.LastName == "" {
 		return errors.New("at least one of first_name or last_name is required")
@@ -44,6 +48,7 @@ func (h *UpdateHandler) Validate(req UpdateRequest) error {
 	return nil
 }
 
+// Serve implements handler.Handler.
 func (h *UpdateHandler) Serve(ctx context.Context, req UpdateRequest) (UpdateResponse, error) {
 	userID, ok := principal.UserIDFromContext(ctx)
 	if !ok {

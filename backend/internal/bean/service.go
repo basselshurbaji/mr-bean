@@ -17,18 +17,22 @@ func NewBeanService(repo BeanRepo) BeanService {
 	return &beanService{repo: repo}
 }
 
+// ListBeans implements BeanService.
 func (s *beanService) ListBeans(ctx context.Context, userID string) ([]Bean, error) {
 	return s.repo.ListBeans(ctx, userID)
 }
 
+// CreateBean implements BeanService.
 func (s *beanService) CreateBean(ctx context.Context, userID string, p BeanParams) (*Bean, error) {
 	return s.repo.CreateBean(ctx, userID, p)
 }
 
+// UpdateBean implements BeanService.
 func (s *beanService) UpdateBean(ctx context.Context, id, userID string, p BeanParams) (*Bean, error) {
 	return s.repo.UpdateBean(ctx, id, userID, p)
 }
 
+// DeleteBean implements BeanService.
 func (s *beanService) DeleteBean(ctx context.Context, id, userID string) error {
 	return s.repo.DeleteBean(ctx, id, userID)
 }

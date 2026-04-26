@@ -29,17 +29,22 @@ func NewUpdateBeanHandler(svc BeanService) *UpdateBeanHandler {
 	return &UpdateBeanHandler{svc: svc}
 }
 
+// Method implements handler.Handler.
 func (h *UpdateBeanHandler) Method() string  { return "PUT" }
+// Pattern implements handler.Handler.
 func (h *UpdateBeanHandler) Pattern() string { return "/beans/{id}" }
 
+// Middlewares implements handler.Handler.
 func (h *UpdateBeanHandler) Middlewares() []middleware.Tag {
 	return []middleware.Tag{middleware.TagAuthenticated}
 }
 
+// Validate implements handler.Handler.
 func (h *UpdateBeanHandler) Validate(req UpdateBeanRequest) error {
 	return validateBeanFields(req.Name, req.Process, req.RoastLevel)
 }
 
+// Serve implements handler.Handler.
 func (h *UpdateBeanHandler) Serve(ctx context.Context, req UpdateBeanRequest) (BeanResponse, error) {
 	userID, ok := principal.UserIDFromContext(ctx)
 	if !ok {

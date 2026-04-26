@@ -28,17 +28,22 @@ func NewUpdateGearHandler(svc GearService) *UpdateGearHandler {
 	return &UpdateGearHandler{svc: svc}
 }
 
+// Method implements handler.Handler.
 func (h *UpdateGearHandler) Method() string  { return "PUT" }
+// Pattern implements handler.Handler.
 func (h *UpdateGearHandler) Pattern() string { return "/gear/{id}" }
 
+// Middlewares implements handler.Handler.
 func (h *UpdateGearHandler) Middlewares() []middleware.Tag {
 	return []middleware.Tag{middleware.TagAuthenticated}
 }
 
+// Validate implements handler.Handler.
 func (h *UpdateGearHandler) Validate(req UpdateGearRequest) error {
 	return validateGearFields(req.TypeID, req.Name, req.Year)
 }
 
+// Serve implements handler.Handler.
 func (h *UpdateGearHandler) Serve(ctx context.Context, req UpdateGearRequest) (GearResponse, error) {
 	userID, ok := principal.UserIDFromContext(ctx)
 	if !ok {

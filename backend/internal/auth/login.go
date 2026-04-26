@@ -24,10 +24,14 @@ func NewLoginHandler(auth AuthService) *LoginHandler {
 	return &LoginHandler{auth: auth}
 }
 
+// Method implements handler.Handler.
 func (h *LoginHandler) Method() string              { return "POST" }
+// Pattern implements handler.Handler.
 func (h *LoginHandler) Pattern() string             { return "/auth/login" }
+// Middlewares implements handler.Handler.
 func (h *LoginHandler) Middlewares() []middleware.Tag { return nil }
 
+// Validate implements handler.Handler.
 func (h *LoginHandler) Validate(req LoginRequest) error {
 	if req.Email == "" {
 		return errValidation("email is required")
@@ -38,6 +42,7 @@ func (h *LoginHandler) Validate(req LoginRequest) error {
 	return nil
 }
 
+// Serve implements handler.Handler.
 func (h *LoginHandler) Serve(ctx context.Context, req LoginRequest) (LoginResponse, error) {
 	access, refresh, err := h.auth.Login(ctx, req.Email, req.Password)
 	if err != nil {

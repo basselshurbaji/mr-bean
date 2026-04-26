@@ -21,10 +21,14 @@ func NewRegisterHandler(auth AuthService) *RegisterHandler {
 	return &RegisterHandler{auth: auth}
 }
 
+// Method implements handler.Handler.
 func (h *RegisterHandler) Method() string              { return "POST" }
+// Pattern implements handler.Handler.
 func (h *RegisterHandler) Pattern() string             { return "/auth/register" }
+// Middlewares implements handler.Handler.
 func (h *RegisterHandler) Middlewares() []middleware.Tag { return nil }
 
+// Validate implements handler.Handler.
 func (h *RegisterHandler) Validate(req RegisterRequest) error {
 	if req.FirstName == "" {
 		return errValidation("first_name is required")
@@ -41,6 +45,7 @@ func (h *RegisterHandler) Validate(req RegisterRequest) error {
 	return nil
 }
 
+// Serve implements handler.Handler.
 func (h *RegisterHandler) Serve(ctx context.Context, req RegisterRequest) (LoginResponse, error) {
 	access, refresh, err := h.auth.Register(ctx, req.FirstName, req.LastName, req.Email, req.Password)
 	if err != nil {

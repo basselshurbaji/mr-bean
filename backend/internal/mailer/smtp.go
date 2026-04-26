@@ -32,6 +32,7 @@ func NewSMTPMailer(host, port, username, password, from string) Mailer {
 	}
 }
 
+// Send implements Mailer.
 func (m *smtpMailer) Send(_ context.Context, email Email) error {
 	var body bytes.Buffer
 	if err := templates.ExecuteTemplate(&body, email.Template, email.Data); err != nil {

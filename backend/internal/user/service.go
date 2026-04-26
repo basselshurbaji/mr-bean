@@ -21,10 +21,12 @@ func NewUserService(repo UserRepo) UserService {
 	return &userService{repo: repo}
 }
 
+// GetByID implements UserService.
 func (s *userService) GetByID(ctx context.Context, id string) (*User, error) {
 	return s.repo.GetByID(ctx, id)
 }
 
+// UpdateProfile implements UserService.
 func (s *userService) UpdateProfile(ctx context.Context, id, firstName, lastName string) (*User, error) {
 	if firstName == "" || lastName == "" {
 		u, err := s.repo.GetByID(ctx, id)
@@ -41,6 +43,7 @@ func (s *userService) UpdateProfile(ctx context.Context, id, firstName, lastName
 	return s.repo.UpdateProfile(ctx, id, firstName, lastName)
 }
 
+// ChangePassword implements UserService.
 func (s *userService) ChangePassword(ctx context.Context, id, oldPassword, newPassword string) error {
 	u, err := s.repo.GetByID(ctx, id)
 	if err != nil {

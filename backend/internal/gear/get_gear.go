@@ -22,13 +22,17 @@ func NewGetGearHandler(svc GearService) *GetGearHandler {
 	return &GetGearHandler{svc: svc}
 }
 
+// Method implements handler.Handler.
 func (h *GetGearHandler) Method() string  { return "GET" }
+// Pattern implements handler.Handler.
 func (h *GetGearHandler) Pattern() string { return "/gear/{id}" }
 
+// Middlewares implements handler.Handler.
 func (h *GetGearHandler) Middlewares() []middleware.Tag {
 	return []middleware.Tag{middleware.TagAuthenticated}
 }
 
+// Validate implements handler.Handler.
 func (h *GetGearHandler) Validate(req GetGearRequest) error {
 	if req.ID == "" {
 		return errors.New("id is required")
@@ -36,6 +40,7 @@ func (h *GetGearHandler) Validate(req GetGearRequest) error {
 	return nil
 }
 
+// Serve implements handler.Handler.
 func (h *GetGearHandler) Serve(ctx context.Context, req GetGearRequest) (GearResponse, error) {
 	userID, ok := principal.UserIDFromContext(ctx)
 	if !ok {

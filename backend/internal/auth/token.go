@@ -41,18 +41,22 @@ func NewTokenService(secret string, accessExpiry, refreshExpiry time.Duration) T
 	}
 }
 
+// GenerateAccessToken implements TokenService.
 func (s *jwtService) GenerateAccessToken(userID string) (string, error) {
 	return s.generate(userID, TokenTypeAccess, s.accessExpiry)
 }
 
+// GenerateRefreshToken implements TokenService.
 func (s *jwtService) GenerateRefreshToken(userID string) (string, error) {
 	return s.generate(userID, TokenTypeRefresh, s.refreshExpiry)
 }
 
+// ValidateAccessToken implements TokenService.
 func (s *jwtService) ValidateAccessToken(raw string) (*Claims, error) {
 	return s.validate(raw, TokenTypeAccess)
 }
 
+// ValidateRefreshToken implements TokenService.
 func (s *jwtService) ValidateRefreshToken(raw string) (*Claims, error) {
 	return s.validate(raw, TokenTypeRefresh)
 }

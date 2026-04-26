@@ -39,17 +39,22 @@ func NewCreateGearHandler(svc GearService) *CreateGearHandler {
 	return &CreateGearHandler{svc: svc}
 }
 
+// Method implements handler.Handler.
 func (h *CreateGearHandler) Method() string  { return "POST" }
+// Pattern implements handler.Handler.
 func (h *CreateGearHandler) Pattern() string { return "/gear" }
 
+// Middlewares implements handler.Handler.
 func (h *CreateGearHandler) Middlewares() []middleware.Tag {
 	return []middleware.Tag{middleware.TagAuthenticated}
 }
 
+// Validate implements handler.Handler.
 func (h *CreateGearHandler) Validate(req CreateGearRequest) error {
 	return validateGearFields(req.TypeID, req.Name, req.Year)
 }
 
+// Serve implements handler.Handler.
 func (h *CreateGearHandler) Serve(ctx context.Context, req CreateGearRequest) (GearResponse, error) {
 	userID, ok := principal.UserIDFromContext(ctx)
 	if !ok {

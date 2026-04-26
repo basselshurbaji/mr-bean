@@ -27,6 +27,7 @@ func NewAuthService(users user.UserRepo, tokens TokenService, mailer mailer.Mail
 	return &authService{users: users, tokens: tokens, mailer: mailer}
 }
 
+// Login implements AuthService.
 func (s *authService) Login(ctx context.Context, email, password string) (string, string, error) {
 	u, err := s.users.GetByEmail(ctx, email)
 	if err != nil {
@@ -54,6 +55,7 @@ func (s *authService) Login(ctx context.Context, email, password string) (string
 	return accessToken, refreshToken, nil
 }
 
+// Refresh implements AuthService.
 func (s *authService) Refresh(ctx context.Context, rawRefreshToken string) (string, string, error) {
 	claims, err := s.tokens.ValidateRefreshToken(rawRefreshToken)
 	if err != nil {
@@ -73,6 +75,7 @@ func (s *authService) Refresh(ctx context.Context, rawRefreshToken string) (stri
 	return accessToken, refreshToken, nil
 }
 
+// Register implements AuthService.
 func (s *authService) Register(ctx context.Context, firstName, lastName, email, password string) (string, string, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {

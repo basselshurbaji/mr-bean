@@ -22,13 +22,17 @@ func NewDeleteGearHandler(svc GearService) *DeleteGearHandler {
 	return &DeleteGearHandler{svc: svc}
 }
 
+// Method implements handler.Handler.
 func (h *DeleteGearHandler) Method() string  { return "DELETE" }
+// Pattern implements handler.Handler.
 func (h *DeleteGearHandler) Pattern() string { return "/gear/{id}" }
 
+// Middlewares implements handler.Handler.
 func (h *DeleteGearHandler) Middlewares() []middleware.Tag {
 	return []middleware.Tag{middleware.TagAuthenticated}
 }
 
+// Validate implements handler.Handler.
 func (h *DeleteGearHandler) Validate(req DeleteGearRequest) error {
 	if req.ID == "" {
 		return errors.New("id is required")
@@ -36,6 +40,7 @@ func (h *DeleteGearHandler) Validate(req DeleteGearRequest) error {
 	return nil
 }
 
+// Serve implements handler.Handler.
 func (h *DeleteGearHandler) Serve(ctx context.Context, req DeleteGearRequest) (handler.NoContent, error) {
 	userID, ok := principal.UserIDFromContext(ctx)
 	if !ok {

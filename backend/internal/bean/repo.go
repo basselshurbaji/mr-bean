@@ -50,6 +50,7 @@ func NewPgBeanRepo(d *sql.DB) BeanRepo {
 	return &pgBeanRepo{q: db.New(d)}
 }
 
+// ListBeans implements BeanRepo.
 func (r *pgBeanRepo) ListBeans(ctx context.Context, userID string) ([]Bean, error) {
 	rows, err := r.q.ListBeansByUserID(ctx, userID)
 	if err != nil {
@@ -62,6 +63,7 @@ func (r *pgBeanRepo) ListBeans(ctx context.Context, userID string) ([]Bean, erro
 	return items, nil
 }
 
+// CreateBean implements BeanRepo.
 func (r *pgBeanRepo) CreateBean(ctx context.Context, userID string, p BeanParams) (*Bean, error) {
 	row, err := r.q.CreateBean(ctx, db.CreateBeanParams{
 		UserID:       userID,
@@ -80,6 +82,7 @@ func (r *pgBeanRepo) CreateBean(ctx context.Context, userID string, p BeanParams
 	return &b, nil
 }
 
+// UpdateBean implements BeanRepo.
 func (r *pgBeanRepo) UpdateBean(ctx context.Context, id, userID string, p BeanParams) (*Bean, error) {
 	row, err := r.q.UpdateBean(ctx, db.UpdateBeanParams{
 		ID:           id,
@@ -102,6 +105,7 @@ func (r *pgBeanRepo) UpdateBean(ctx context.Context, id, userID string, p BeanPa
 	return &b, nil
 }
 
+// DeleteBean implements BeanRepo.
 func (r *pgBeanRepo) DeleteBean(ctx context.Context, id, userID string) error {
 	n, err := r.q.DeleteBeanByID(ctx, db.DeleteBeanByIDParams{ID: id, UserID: userID})
 	if err != nil {

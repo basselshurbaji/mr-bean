@@ -24,13 +24,17 @@ func NewUpdateStationHandler(svc GearService) *UpdateStationHandler {
 	return &UpdateStationHandler{svc: svc}
 }
 
+// Method implements handler.Handler.
 func (h *UpdateStationHandler) Method() string  { return "PUT" }
+// Pattern implements handler.Handler.
 func (h *UpdateStationHandler) Pattern() string { return "/stations/{id}" }
 
+// Middlewares implements handler.Handler.
 func (h *UpdateStationHandler) Middlewares() []middleware.Tag {
 	return []middleware.Tag{middleware.TagAuthenticated}
 }
 
+// Validate implements handler.Handler.
 func (h *UpdateStationHandler) Validate(req UpdateStationRequest) error {
 	if req.Name == "" {
 		return errors.New("name is required")
@@ -38,6 +42,7 @@ func (h *UpdateStationHandler) Validate(req UpdateStationRequest) error {
 	return nil
 }
 
+// Serve implements handler.Handler.
 func (h *UpdateStationHandler) Serve(ctx context.Context, req UpdateStationRequest) (StationResponse, error) {
 	userID, ok := principal.UserIDFromContext(ctx)
 	if !ok {

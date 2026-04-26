@@ -22,13 +22,17 @@ func NewDeleteBeanHandler(svc BeanService) *DeleteBeanHandler {
 	return &DeleteBeanHandler{svc: svc}
 }
 
+// Method implements handler.Handler.
 func (h *DeleteBeanHandler) Method() string  { return "DELETE" }
+// Pattern implements handler.Handler.
 func (h *DeleteBeanHandler) Pattern() string { return "/beans/{id}" }
 
+// Middlewares implements handler.Handler.
 func (h *DeleteBeanHandler) Middlewares() []middleware.Tag {
 	return []middleware.Tag{middleware.TagAuthenticated}
 }
 
+// Validate implements handler.Handler.
 func (h *DeleteBeanHandler) Validate(req DeleteBeanRequest) error {
 	if req.ID == "" {
 		return errors.New("id is required")
@@ -36,6 +40,7 @@ func (h *DeleteBeanHandler) Validate(req DeleteBeanRequest) error {
 	return nil
 }
 
+// Serve implements handler.Handler.
 func (h *DeleteBeanHandler) Serve(ctx context.Context, req DeleteBeanRequest) (handler.NoContent, error) {
 	userID, ok := principal.UserIDFromContext(ctx)
 	if !ok {
