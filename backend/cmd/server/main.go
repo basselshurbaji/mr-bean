@@ -12,6 +12,7 @@ import (
 	"github.com/basselshurbaji/mr_bean/backend/config"
 	"github.com/basselshurbaji/mr_bean/backend/internal/auth"
 	"github.com/basselshurbaji/mr_bean/backend/internal/bean"
+	"github.com/basselshurbaji/mr_bean/backend/internal/extraction"
 	"github.com/basselshurbaji/mr_bean/backend/internal/gear"
 	"github.com/basselshurbaji/mr_bean/backend/internal/health"
 	"github.com/basselshurbaji/mr_bean/backend/internal/mailer"
@@ -39,15 +40,17 @@ func main() {
 		log.Fatalf("ping db: %v", err)
 	}
 
-	userRepo := user.NewPgUserRepo(db)
-	gearRepo := gear.NewPgGearRepo(db)
-	beanRepo := bean.NewPgBeanRepo(db)
+	userRepo       := user.NewPgUserRepo(db)
+	gearRepo       := gear.NewPgGearRepo(db)
+	beanRepo       := bean.NewPgBeanRepo(db)
+	extractionRepo := extraction.NewPgExtractionRepo(db)
 	tokenSvc := auth.NewTokenService(cfg.Auth.JWTSecret, cfg.Auth.JWTExpiry, cfg.Auth.RefreshExpiry)
 	mailerSvc := mailer.NewSMTPMailer(cfg.Mailer.Host, cfg.Mailer.Port, cfg.Mailer.Username, cfg.Mailer.Password, cfg.Mailer.From)
-	authSvc := auth.NewAuthService(userRepo, tokenSvc, mailerSvc)
-	userSvc := user.NewUserService(userRepo)
-	gearSvc := gear.NewGearService(gearRepo)
-	beanSvc := bean.NewBeanService(beanRepo)
+	authSvc      := auth.NewAuthService(userRepo, tokenSvc, mailerSvc)
+	userSvc      := user.NewUserService(userRepo)
+	gearSvc      := gear.NewGearService(gearRepo)
+	beanSvc      := bean.NewBeanService(beanRepo)
+	extractionSvc := extraction.NewExtractionService(extractionRepo)
 
 	middleware.Register(middleware.TagAuthenticated, auth.Middleware(tokenSvc))
 
@@ -73,6 +76,11 @@ func main() {
 	router.Register(r, bean.NewCreateBeanHandler(beanSvc))
 	router.Register(r, bean.NewUpdateBeanHandler(beanSvc))
 	router.Register(r, bean.NewDeleteBeanHandler(beanSvc))
+	router.Register(r, extraction.NewListExtractionsHandler(extractionSvc))
+	router.Register(r, extraction.NewCreateExtractionHandler(extractionSvc))
+	router.Register(r, extraction.NewGetExtractionHandler(extractionSvc))
+	router.Register(r, extraction.NewUpdateExtractionHandler(extractionSvc))
+	router.Register(r, extraction.NewDeleteExtractionHandler(extractionSvc))
 
 	addr := fmt.Sprintf(":%s", cfg.Port)
 	log.Printf("server listening on %s", addr)

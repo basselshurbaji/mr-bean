@@ -16,5 +16,10 @@ SET name = $1, roaster = $2, origin = $3, process = $4, roast_level = $5,
 WHERE id = $8 AND user_id = $9
 RETURNING id, user_id, name, roaster, origin, process, roast_level, tasting_notes, notes, created_at, updated_at;
 
+-- name: GetBeanByID :one
+SELECT id, user_id, name, roaster, origin, process, roast_level, tasting_notes, notes, created_at, updated_at
+FROM beans
+WHERE id = $1 AND user_id = $2;
+
 -- name: DeleteBeanByID :execrows
 DELETE FROM beans WHERE id = $1 AND user_id = $2;
