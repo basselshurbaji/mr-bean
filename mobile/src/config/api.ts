@@ -1,8 +1,6 @@
-import Constants from 'expo-constants';
+import appConfig from '../../appConfig.json';
 
-export const API_URL: string =
-  (Constants.expoConfig?.extra?.apiUrl as string | undefined) ??
-  'http://localhost:8080';
+export const API_URL: string = appConfig.server_url;
 
 type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 

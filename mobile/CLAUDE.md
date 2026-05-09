@@ -1,153 +1,232 @@
 # Mr. Bean — Mobile
 
-React Native / Expo cross-platform app (iOS, Android, Web). Talks to the Go backend at `../backend` over HTTP.
+React Native app (iOS, Android). Talks to the Go backend at `../backend` over HTTP.
 
 ---
 
 ## Stack
 
-| Layer       | Library                                                        |
-|-------------|----------------------------------------------------------------|
-| Framework   | Expo SDK 54 + Expo Router 6 (file-based routing)               |
-| Language    | TypeScript 5.9, strict mode                                    |
-| Navigation  | Expo Router — `app/` directory                                 |
-| State       | TBD (context + hooks for now)                                  |
-| Auth tokens | `expo-secure-store`                                            |
-| HTTP        | `src/config/api.ts` — thin `fetch` wrapper                     |
-| Fonts       | `@expo-google-fonts/{playfair-display,dm-sans,jetbrains-mono}` |
-| Icons       | `@expo/vector-icons` (Lucide-compatible)                       |
+| Layer            | Library                                                              |
+| ---------------- | -------------------------------------------------------------------- |
+| Framework        | Expo SDK 54 + React Native 0.81.5 + React 19                        |
+| Language         | TypeScript 5.9, strict mode, `@/*` path alias                       |
+| Navigation       | React Navigation 7 — NativeStack + BottomTabs (manual, not Expo Router) |
+| Animation        | react-native-reanimated 4 (new arch, worklets)                      |
+| Keyboard         | react-native-keyboard-controller                                     |
+| Auth tokens      | expo-secure-store                                                    |
+| HTTP             | `src/config/api.ts` — thin `fetch` wrapper                          |
+| Icons            | react-native-svg (domain icons) + @expo/vector-icons/Feather (UI)   |
+| Fonts            | Playfair Display, DM Sans, JetBrains Mono (Google Fonts)            |
+| State            | React Context + Hooks                                                |
+| New Architecture | Enabled (`newArchEnabled: true`)                                     |
 
 ---
 
-## Project structure
+## Project Structure
 
 ```
-app/                        Expo Router screens
-  _layout.tsx               Root layout — loads fonts, shows splash
-  index.tsx                 Redirect to (auth)/login or (tabs) based on auth
-  (auth)/
-    _layout.tsx             Stack, no header
-    login.tsx               Login / Register screen
+app/                            Screen components (grouped by route)
+  (auth)/login.tsx              Login / Register
   (tabs)/
-    _layout.tsx             Bottom tab navigator
-    index.tsx               Home
-    beans.tsx               Bean library
+    home/
+      index.tsx                 Home dashboard + extraction history
+      ExtractionModal.tsx       Bottom sheet — log a new extraction
+    beans/
+      index.tsx                 Bean library list
+      [id].tsx                  Bean detail / edit
+      BeanSheet.tsx             Bottom sheet — add / edit a bean
     gear/
-      _layout.tsx           Stack layout for gear screens
-      index.tsx             My Gear screen (gear list + stations)
-      [id].tsx              Gear item detail / edit screen
-      GearSheet.tsx         Bottom sheet — add / edit a gear item
-      StationSheet.tsx      Bottom sheet — add / edit a station
-assets/                     Images, splash, icon
+      index.tsx                 My Gear + Stations
+      [id].tsx                  Gear item detail / edit
+      GearSheet.tsx             Bottom sheet — add / edit a gear item
+      StationSheet.tsx          Bottom sheet — add / edit a station
+    profile.tsx                 Profile + logout
+assets/                         Images, splash, icon
 src/
   api/
-    gear.ts                 Gear + station API calls (gearApi)
+    beans.ts                    Bean types + beansApi (CRUD)
+    gear.ts                     GearItem, Station types + gearApi (CRUD)
+    extractions.ts              Extraction types + extractionApi, computeZone helper
   components/
-    GearIcon.tsx            Icon resolver by gear type_id
+    GearIcon.tsx                SVG icon resolver by gear type_id
+    RoastBubble.tsx             Roast level badge
   config/
-    api.ts                  API_URL constant + apiFetch helper
+    api.ts                      API_URL constant + apiFetch helper
   context/
-    GearContext.tsx         Gear + station state provider
-    UserContext.tsx         Auth / user state provider
+    AuthContext.tsx             { isAuthenticated, ready, setIsAuthenticated }
+    UserContext.tsx             { user, loading, setUser, logout, refreshUser }
+    BeansContext.tsx            { beans, loading, refresh, addBean, updateBean, removeBean }
+    GearContext.tsx             { gear, stations, loading, refresh, …CRUD helpers }
+    ExtractionsContext.tsx      { extractions, loading, refresh, addExtraction, removeExtraction }
   lib/
-    apiClient.ts            authorizedFetch — token refresh logic
-    auth.ts                 Secure-store token helpers
+    apiClient.ts                authorizedFetch — injects Bearer token, auto-refreshes on 401
+    auth.ts                     SecureStore token helpers (save / get / clear)
+  navigation/
+    index.tsx                   Root App component — all navigators and providers defined here
   theme/
-    colors.ts               Design system color tokens → RN values
-    typography.ts           Font families, sizes, line heights, text styles
-    spacing.ts              Spacing scale, border radii, shadow presets
-    index.ts                Re-exports everything from theme/
-scripts/
-  setup.sh                  One-shot dev environment setup (run after clone)
+    colors.ts                   Semantic color tokens → RN values
+    typography.ts               Font families, sizes, line heights, text styles
+    spacing.ts                  Spacing scale, border radii, shadow presets
+    index.ts                    Re-exports everything from theme/
 ```
 
 ---
 
-## Design system
+## Navigation Architecture
+
+Navigation is implemented manually in `src/navigation/index.tsx` using React Navigation — **not** Expo Router (the `expo-router` plugin in `app.config.ts` is present but routing is handled programmatically).
+
+```
+NavigationContainer
+└── Root  (conditional on isAuthenticated)
+    ├── AuthNavigator    NativeStack → LoginScreen
+    └── MainTabs         BottomTabs
+        ├── HomeTab      HomeScreen (+ Beans/Gear/Extractions providers)
+        ├── BeansNavigator  NativeStack → BeanList → BeanDetail
+        ├── GearNavigator   NativeStack → GearList → GearDetail
+        └── ProfileScreen
+```
+
+Provider order (outermost → innermost):
+```
+SafeAreaProvider → KeyboardProvider → AuthProvider → UserProvider
+  → NavigationContainer → per-tab providers (Beans / Gear / Extractions)
+```
+
+---
+
+## Design System
 
 Design tokens live in `../design/design-system/` — use `src/theme/` which is the RN translation.
 
-- **Colors**: `src/theme/colors.ts` — mirrors `../design/design-system/colors_and_type.css`
+- **Colors**: `src/theme/colors.ts`
 - **Typography**: `src/theme/typography.ts` — Playfair Display (display), DM Sans (body), JetBrains Mono (data)
 - **Spacing / Radii / Shadows**: `src/theme/spacing.ts`
 - **Brand & voice**: `../design/design-system/README.md`
-- **Component specs**: `../design/design_handoff_login/`, `../design/design_handoff_profile/`, `../design/design_handoff_my_gear/`
-  - Each folder has an HTML prototype (`*.html`) and a `README.md` spec. Always read the README before implementing a screen.
+- **Component specs**: `../design/design_handoff_*/README.md` — read before implementing a screen
 
 Always `import { colors, textStyles, spacing, radii, shadows } from '@/src/theme'` — never hardcode hex values.
 
 ---
 
+## HTTP & Auth
+
+**Request chain:**
+1. `apiFetch` (`src/config/api.ts`) — base wrapper, sets `Content-Type`, reads `API_URL`
+2. `authorizedFetch` (`src/lib/apiClient.ts`) — adds `Authorization: Bearer`, retries once after token refresh on 401
+3. API modules (`src/api/`) call `authorizedFetch` — never call `fetch` directly
+
+**Tokens** are stored in `expo-secure-store` (keys: `mr_bean_access`, `mr_bean_refresh`). Never use AsyncStorage for tokens.
+
+---
+
 ## Backend API
 
-Base URL is read from `EXPO_PUBLIC_API_URL` env var (falls back to `http://localhost:8080`).
-Configured in `app.config.ts` → `extra.apiUrl` → consumed by `src/config/api.ts`.
+Base URL from `appConfig.json` → `server_url` (default `http://localhost:8080`).
 
-Known endpoints (backend default port 8080):
-
-| Method | Path                      | Auth   | Notes                                  |
-|--------|---------------------------|--------|----------------------------------------|
-| POST   | /auth/register            | public | First name, last name, email, password |
-| POST   | /auth/login               | public | Returns access + refresh tokens        |
-| POST   | /auth/refresh             | public | Rotate refresh token                   |
-| GET    | /user/me                  | bearer | Current user profile                   |
-| PATCH  | /user/me                  | bearer | Update profile                         |
-| POST   | /user/change-password     | bearer | Change password                        |
-| GET    | /health                   | public | Liveness check                         |
-| GET    | /gear                     | bearer | List all gear items                    |
-| POST   | /gear                     | bearer | Create a gear item                     |
-| PUT    | /gear/:id                 | bearer | Update a gear item                     |
-| DELETE | /gear/:id                 | bearer | Delete a gear item (returns 204)       |
-| GET    | /stations                 | bearer | List all stations                      |
-| POST   | /stations                 | bearer | Create a station                       |
-| PUT    | /stations/:id             | bearer | Update a station                       |
-| DELETE | /stations/:id             | bearer | Delete a station (returns 204)         |
-
-Use `apiFetch` from `src/config/api.ts` for all requests. Pass the JWT as `token` option.
-
----
-
-## Backend host configuration
-
-Edit `.env` (copy from `.env.example` on first clone):
-
-```
-EXPO_PUBLIC_API_URL=http://192.168.1.42:8080   # LAN IP for physical device
-```
-
-Restart `expo start` after changing `.env`. On simulators `localhost` works; on a physical device use your machine's LAN IP.
+| Method | Path                  | Auth   | Notes                                  |
+| ------ | --------------------- | ------ | -------------------------------------- |
+| POST   | /auth/register        | public | First name, last name, email, password |
+| POST   | /auth/login           | public | Returns access + refresh tokens        |
+| POST   | /auth/refresh         | public | Rotate refresh token                   |
+| GET    | /user/me              | bearer | Current user profile                   |
+| PATCH  | /user/me              | bearer | Update profile                         |
+| POST   | /user/change-password | bearer | Change password                        |
+| GET    | /health               | public | Liveness check                         |
+| GET    | /gear                 | bearer | List gear items                        |
+| POST   | /gear                 | bearer | Create a gear item                     |
+| PUT    | /gear/:id             | bearer | Update a gear item                     |
+| DELETE | /gear/:id             | bearer | Delete a gear item (204)               |
+| GET    | /stations             | bearer | List stations                          |
+| POST   | /stations             | bearer | Create a station                       |
+| PUT    | /stations/:id         | bearer | Update a station                       |
+| DELETE | /stations/:id         | bearer | Delete a station (204)                 |
+| GET    | /beans                | bearer | List beans                             |
+| POST   | /beans                | bearer | Create a bean                          |
+| PUT    | /beans/:id            | bearer | Update a bean                          |
+| DELETE | /beans/:id            | bearer | Delete a bean (204)                    |
+| GET    | /extractions          | bearer | List extractions (limit: 20)           |
+| POST   | /extractions          | bearer | Log an extraction                      |
+| DELETE | /extractions/:id      | bearer | Delete an extraction (204)             |
 
 ---
 
-## Getting started
+## Backend Host Configuration
+
+Edit `appConfig.json` at the project root. The file is committed with `localhost` defaults:
+
+```json
+{
+  "server_url": "http://192.168.1.42:8080"
+}
+```
+
+On simulators `localhost` works. On a physical device use your machine's LAN IP (`make local-ip` writes it automatically).
+
+---
+
+## Getting Started
 
 ```bash
-bash scripts/setup.sh   # install Node, deps, copy .env — run once after clone
-npm run ios             # iOS Simulator
-npm run android         # Android emulator
-npm run web             # Browser (Metro + React Native Web)
-npm start               # Expo Go / QR code
+npm install
+
+npm run ios                   # iOS Simulator
+npm run android               # Android emulator
+
+make typecheck                # tsc --noEmit
+make local-ip                 # write machine LAN IP into appConfig.json
 ```
 
 ---
 
 ## Conventions
 
-- Sentence case for all UI labels, buttons, headings (Title Case only for "Mr. Bean")
+- Sentence case for all UI labels, buttons, and headings (Title Case only for "Mr. Bean")
 - Numbers with units: `18.5 g`, `28 s`, `1:2.1` — always use JetBrains Mono (`textStyles.mono`)
-- Lucide icons via `@expo/vector-icons/Feather` (closest stroke-weight match)
-- No hardcoded colours or font names — always go through `src/theme`
-- `StyleSheet.create` for all styles; no inline style objects in JSX
-- Auth screens live outside `(tabs)` — gate in `app/index.tsx` by checking auth state
+- Icons: `react-native-svg` for domain/gear icons, `@expo/vector-icons/Feather` for UI icons
+- No hardcoded colors or font names — always go through `src/theme`
+- `StyleSheet.create()` for all styles; no inline style objects in JSX
 
-### Safe area
+### Keyboard Avoidance
 
-`SafeAreaProvider` lives in `app/_layout.tsx` (root). Every screen must handle its own insets — the navigators do **not** do this automatically when `headerShown: false`.
+`react-native-keyboard-controller` provides frame-synced keyboard avoidance via Reanimated worklets. `KeyboardProvider` wraps the root in `src/navigation/index.tsx`. No `Platform.OS` checks needed.
 
-| Pattern                                       | When to use                                                                             |
-|-----------------------------------------------|-----------------------------------------------------------------------------------------|
-| `<SafeAreaView edges={['top']} …>`            | Simple screens with a plain `View` root (Home, Beans, etc.)                             |
-| `<SafeAreaView edges={['top', 'bottom']} …>`  | Auth screens inside `KeyboardAvoidingView` (wrap KAV, not replace it)                  |
-| `useSafeAreaInsets()` → apply `insets.top`    | Screens with an absolute-positioned overlay (e.g. toast) where SAV can't be outermost  |
+**Full-screen screens** — replace `ScrollView` with `KeyboardAwareScrollView`:
 
-Never hardcode status-bar offsets. Import from `react-native-safe-area-context` (already in deps).
+```tsx
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+
+<KeyboardAwareScrollView keyboardShouldPersistTaps="handled">
+  {/* inputs */}
+</KeyboardAwareScrollView>
+```
+
+**Bottom sheet modals** — lift the sheet at the `Modal` level, scroll inside the sheet:
+
+```tsx
+import { KeyboardAvoidingView, KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+
+<Modal transparent>
+  <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
+    <View style={styles.overlay}>
+      <Animated.View style={styles.sheet}>
+        <KeyboardAwareScrollView keyboardShouldPersistTaps="handled">
+          {/* inputs */}
+        </KeyboardAwareScrollView>
+      </Animated.View>
+    </View>
+  </KeyboardAvoidingView>
+</Modal>
+```
+
+### Safe Area
+
+`SafeAreaProvider` is in `src/navigation/index.tsx`. Navigators with `headerShown: false` do not handle insets automatically — each screen must handle its own.
+
+| Pattern                                       | When to use                                             |
+| --------------------------------------------- | ------------------------------------------------------- |
+| `<SafeAreaView edges={['top']}>`              | Most screens — simple top inset                        |
+| `<SafeAreaView edges={['top', 'bottom']}>`    | Auth screens — full wrap including keyboard scroll area|
+| `useSafeAreaInsets()` → apply `insets.top`    | Screens with absolute-positioned overlays              |
+
+Never hardcode status-bar offsets. Import from `react-native-safe-area-context`.

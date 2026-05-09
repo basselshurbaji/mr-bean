@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { router } from 'expo-router';
 import { clearTokens } from '@/src/lib/auth';
 import { authorizedFetch, setUnauthorizedHandler } from '@/src/lib/apiClient';
+import { useAuth } from '@/src/context/AuthContext';
 
 export interface User {
   id: string;
@@ -24,12 +24,13 @@ const UserContext = createContext<UserContextValue | null>(null);
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const { setIsAuthenticated } = useAuth();
 
   const logout = useCallback(async () => {
     await clearTokens();
     setUser(null);
-    router.replace('/(auth)/login');
-  }, []);
+    setIsAuthenticated(false);
+  }, [setIsAuthenticated]);
 
   const refreshUser = useCallback(async () => {
     try {

@@ -1,16 +1,14 @@
 import {
   ActivityIndicator,
   Animated,
-  KeyboardAvoidingView,
   Modal,
-  Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
+import { KeyboardAvoidingView, KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useEffect, useRef, useState } from 'react';
 import { colors, palette, radii, spacing } from '@/src/theme';
 import { beansApi, Bean, BeanBody, PROCESSES, ROAST_LEVELS } from '@/src/api/beans';
@@ -88,6 +86,7 @@ export default function BeanSheet({ editBean, onClose, onSaved }: Props) {
 
   return (
     <Modal transparent animationType="none" onRequestClose={dismiss}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
       <View style={styles.overlay}>
         <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
           <Pressable style={StyleSheet.absoluteFill} onPress={dismiss} />
@@ -96,12 +95,11 @@ export default function BeanSheet({ editBean, onClose, onSaved }: Props) {
         <Animated.View style={[styles.sheet, { transform: [{ translateY }] }]}>
           <View style={styles.handle} />
 
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-            <ScrollView
-              contentContainerStyle={styles.formContent}
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-            >
+          <KeyboardAwareScrollView
+            contentContainerStyle={styles.formContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
               {/* Header row */}
               <View style={styles.sheetHeader}>
                 <Text style={styles.sheetTitle}>
@@ -285,10 +283,10 @@ export default function BeanSheet({ editBean, onClose, onSaved }: Props) {
                   </Text>
                 )}
               </Pressable>
-            </ScrollView>
-          </KeyboardAvoidingView>
+          </KeyboardAwareScrollView>
         </Animated.View>
       </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

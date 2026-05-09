@@ -7,7 +7,9 @@ import {
   View,
 } from 'react-native';
 import { useCallback, useRef, useState } from 'react';
-import { useRouter } from 'expo-router';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { BeansStackParamList } from '@/src/navigation';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { colors, palette, radii, spacing } from '@/src/theme';
@@ -88,7 +90,7 @@ function BeanCard({ bean, onPress }: { bean: Bean; onPress: () => void }) {
 
 export default function BeansScreen() {
   const insets = useSafeAreaInsets();
-  const router = useRouter();
+  const navigation = useNavigation<NativeStackNavigationProp<BeansStackParamList>>();
   const { beans, addBean, refresh } = useBeans();
   const toast = useToast();
 
@@ -132,7 +134,7 @@ export default function BeansScreen() {
           <BeanCard
             bean={item}
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            onPress={() => (router.push as any)({ pathname: '/(tabs)/beans/[id]', params: { id: item.id } })}
+            onPress={() => navigation.navigate('BeanDetail', { id: item.id })}
           />
         )}
       />

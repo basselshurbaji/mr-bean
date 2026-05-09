@@ -1,16 +1,14 @@
 import {
   ActivityIndicator,
   Animated,
-  KeyboardAvoidingView,
   Modal,
-  Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
+import { KeyboardAvoidingView, KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useEffect, useRef, useState } from 'react';
 import { colors, palette, radii, spacing } from '@/src/theme';
 import { gearApi, GearItem, Station } from '@/src/api/gear';
@@ -102,6 +100,7 @@ export default function StationSheet({ gear, editStation, onClose, onSaved, onDe
 
   return (
     <Modal transparent animationType="none" onRequestClose={dismiss}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
       <View style={styles.overlay}>
         <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
           <Pressable style={StyleSheet.absoluteFill} onPress={dismiss} />
@@ -110,14 +109,11 @@ export default function StationSheet({ gear, editStation, onClose, onSaved, onDe
         <Animated.View style={[styles.sheet, { transform: [{ translateY }] }]}>
           <View style={styles.handle} />
 
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          <KeyboardAwareScrollView
+            contentContainerStyle={styles.content}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
           >
-            <ScrollView
-              contentContainerStyle={styles.content}
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-            >
               <Text style={styles.title}>
                 {isEdit ? 'Edit station' : 'New station'}
               </Text>
@@ -228,10 +224,10 @@ export default function StationSheet({ gear, editStation, onClose, onSaved, onDe
                   )}
                 </Pressable>
               )}
-            </ScrollView>
-          </KeyboardAvoidingView>
+          </KeyboardAwareScrollView>
         </Animated.View>
       </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

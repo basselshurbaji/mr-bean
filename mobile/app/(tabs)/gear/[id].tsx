@@ -7,7 +7,10 @@ import {
   Text,
   View,
 } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useRoute, useNavigation } from '@react-navigation/native';
+import { RouteProp } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { GearStackParamList } from '@/src/navigation';
 import { useRef, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
@@ -55,8 +58,9 @@ function useToast() {
 }
 
 export default function GearDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const router = useRouter();
+  const route = useRoute<RouteProp<GearStackParamList, 'GearDetail'>>();
+  const { id } = route.params;
+  const navigation = useNavigation<NativeStackNavigationProp<GearStackParamList>>();
   const insets = useSafeAreaInsets();
   const { gear, updateGear, removeGear } = useGear();
   const toast = useToast();
@@ -72,7 +76,7 @@ export default function GearDetailScreen() {
     try {
       await gearApi.deleteGear(item.id);
       removeGear(item.id);
-      router.back();
+      navigation.goBack();
     } catch {
       setDeleting(false);
       toast.show('Failed to remove item.');
@@ -100,7 +104,7 @@ export default function GearDetailScreen() {
         <View style={styles.navRow}>
           <Pressable
             style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.7 }]}
-            onPress={() => router.back()}
+            onPress={() => navigation.goBack()}
           >
             <Feather name="chevron-left" size={18} color={colors.fgPrimary} />
           </Pressable>

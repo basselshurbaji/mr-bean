@@ -1,17 +1,15 @@
 import {
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
   ActivityIndicator,
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRef, useState } from 'react';
-import { router } from 'expo-router';
+import { useAuth } from '@/src/context/AuthContext';
 import Svg, { Defs, RadialGradient, Stop, Path } from 'react-native-svg';
 import { colors, spacing, radii } from '@/src/theme';
 import { apiFetch } from '@/src/config/api';
@@ -64,6 +62,7 @@ function BeanMark({ size = 48 }: { size?: number }) {
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function LoginScreen() {
+  const { setIsAuthenticated } = useAuth();
   const [mode, setMode] = useState<Mode>('login');
   const [form, setForm] = useState<Form>({ firstName: '', lastName: '', email: '', password: '', confirm: '' });
   const [focusedField, setFocusedField] = useState<string | null>(null);
@@ -125,7 +124,7 @@ export default function LoginScreen() {
         });
       }
       await saveTokens(res.token, res.refresh_token);
-      router.replace('/(tabs)');
+      setIsAuthenticated(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went sideways. Even my grinder jams sometimes.');
     } finally {
@@ -139,11 +138,7 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView
+      <KeyboardAwareScrollView
         contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
@@ -295,8 +290,7 @@ export default function LoginScreen() {
         </View>
 
         <View style={styles.bottomPad} />
-      </ScrollView>
-    </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }

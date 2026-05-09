@@ -7,7 +7,10 @@ import {
   Text,
   View,
 } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useRoute, useNavigation } from '@react-navigation/native';
+import { RouteProp } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { BeansStackParamList } from '@/src/navigation';
 import { useRef, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
@@ -42,8 +45,9 @@ function useToast() {
 }
 
 export default function BeanDetailScreen() {
-  const { id }  = useLocalSearchParams<{ id: string }>();
-  const router  = useRouter();
+  const route = useRoute<RouteProp<BeansStackParamList, 'BeanDetail'>>();
+  const { id } = route.params;
+  const navigation = useNavigation<NativeStackNavigationProp<BeansStackParamList>>();
   const insets  = useSafeAreaInsets();
   const { beans, updateBean, removeBean } = useBeans();
   const toast   = useToast();
@@ -59,7 +63,7 @@ export default function BeanDetailScreen() {
     try {
       await beansApi.delete(bean.id);
       removeBean(bean.id);
-      router.back();
+      navigation.goBack();
     } catch {
       setDeleting(false);
       toast.show('Failed to remove bean.');
@@ -92,7 +96,7 @@ export default function BeanDetailScreen() {
         <View style={styles.navRow}>
           <Pressable
             style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.7 }]}
-            onPress={() => router.back()}
+            onPress={() => navigation.goBack()}
           >
             <Feather name="chevron-left" size={18} color={colors.fgPrimary} />
           </Pressable>

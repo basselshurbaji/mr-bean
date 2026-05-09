@@ -7,7 +7,9 @@ import {
   View,
 } from 'react-native';
 import { useCallback, useRef, useState } from 'react';
-import { useRouter } from 'expo-router';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { GearStackParamList } from '@/src/navigation';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { colors, palette, radii, spacing } from '@/src/theme';
@@ -152,7 +154,7 @@ type ActiveSheet =
 
 export default function GearScreen() {
   const insets = useSafeAreaInsets();
-  const router = useRouter();
+  const navigation = useNavigation<NativeStackNavigationProp<GearStackParamList>>();
   const { gear, stations, addGear, addStation, updateStation, removeStation, refresh } = useGear();
   const toast = useToast();
 
@@ -250,8 +252,7 @@ export default function GearScreen() {
             renderItem={({ item }) => (
               <GearCard
                 item={item}
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                onPress={() => (router.push as any)({ pathname: '/(tabs)/gear/[id]', params: { id: item.id } })}
+                onPress={() => navigation.navigate('GearDetail', { id: item.id })}
               />
             )}
           />

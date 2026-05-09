@@ -1,17 +1,16 @@
 import {
   ActivityIndicator,
   Animated,
-  KeyboardAvoidingView,
   LayoutAnimation,
   Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   UIManager,
   View,
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useRef, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
@@ -214,15 +213,11 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.screen}>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      <KeyboardAwareScrollView
+        contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 12 }]}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        <ScrollView
-          contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 12 }]}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.title}>Profile</Text>
@@ -404,8 +399,7 @@ export default function ProfileScreen() {
               ? <ActivityIndicator color="#C0392B" />
               : <Text style={styles.logoutLabel}>Log out</Text>}
           </Pressable>
-        </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
 
       {/* Toast */}
       <Animated.View style={[styles.toast, toast.animatedStyle]} pointerEvents="none">

@@ -1,9 +1,7 @@
 import {
   ActivityIndicator,
   Animated,
-  KeyboardAvoidingView,
   Modal,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -11,6 +9,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { KeyboardAvoidingView, KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useEffect, useRef, useState } from 'react';
 import { colors, palette, radii, spacing } from '@/src/theme';
 import { gearApi, GearItem } from '@/src/api/gear';
@@ -95,6 +94,7 @@ export default function GearSheet({ editItem, onClose, onSaved }: Props) {
 
   return (
     <Modal transparent animationType="none" onRequestClose={dismiss}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
       <View style={styles.overlay}>
         <Animated.View
           style={[styles.backdrop, { opacity: backdropOpacity }]}
@@ -106,9 +106,7 @@ export default function GearSheet({ editItem, onClose, onSaved }: Props) {
           {/* Drag handle */}
           <View style={styles.handle} />
 
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          >
+          <>
             {step === 'type' ? (
               <ScrollView
                 contentContainerStyle={styles.typeContent}
@@ -135,7 +133,7 @@ export default function GearSheet({ editItem, onClose, onSaved }: Props) {
                 </View>
               </ScrollView>
             ) : (
-              <ScrollView
+              <KeyboardAwareScrollView
                 contentContainerStyle={styles.formContent}
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
@@ -264,11 +262,12 @@ export default function GearSheet({ editItem, onClose, onSaved }: Props) {
                     </Text>
                   )}
                 </Pressable>
-              </ScrollView>
+              </KeyboardAwareScrollView>
             )}
-          </KeyboardAvoidingView>
+          </>
         </Animated.View>
       </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

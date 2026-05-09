@@ -4,10 +4,6 @@ dist/
 web-build/
 .DS_Store
 
-# Local env — never commit secrets
-.env
-.env.local
-
 # Native build outputs
 ios/
 android/

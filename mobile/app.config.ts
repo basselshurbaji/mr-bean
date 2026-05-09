@@ -33,12 +33,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     output: 'static',
     favicon: './assets/images/favicon.png',
   },
-  plugins: ['expo-router', 'expo-secure-store'],
+  plugins: ['expo-secure-store'],
   experiments: {
     typedRoutes: true,
-  },
-  extra: {
-    // Set EXPO_PUBLIC_API_URL in your .env to point at a non-local backend.
-    apiUrl: process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8080',
   },
 });
