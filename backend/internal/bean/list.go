@@ -25,7 +25,7 @@ func (h *ListBeansHandler) Pattern() string { return "/beans" }
 
 // Middlewares implements handler.Handler.
 func (h *ListBeansHandler) Middlewares() []middleware.Tag {
-	return []middleware.Tag{middleware.TagAuthenticated}
+	return []middleware.Tag{middleware.TagAuthenticated, middleware.TagAppAuthenticated}
 }
 
 // Validate implements handler.Handler.

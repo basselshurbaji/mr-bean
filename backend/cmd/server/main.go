@@ -44,15 +44,18 @@ func main() {
 	gearRepo       := gear.NewPgGearRepo(db)
 	beanRepo       := bean.NewPgBeanRepo(db)
 	extractionRepo := extraction.NewPgExtractionRepo(db)
+	appTokenRepo   := auth.NewPgAppTokenRepo(db)
 	tokenSvc := auth.NewTokenService(cfg.Auth.JWTSecret, cfg.Auth.JWTExpiry, cfg.Auth.RefreshExpiry)
 	mailerSvc := mailer.NewSMTPMailer(cfg.Mailer.Host, cfg.Mailer.Port, cfg.Mailer.Username, cfg.Mailer.Password, cfg.Mailer.From)
 	authSvc      := auth.NewAuthService(userRepo, tokenSvc, mailerSvc)
+	appTokenSvc  := auth.NewAppTokenService(appTokenRepo, tokenSvc)
 	userSvc      := user.NewUserService(userRepo)
 	gearSvc      := gear.NewGearService(gearRepo)
 	beanSvc      := bean.NewBeanService(beanRepo)
 	extractionSvc := extraction.NewExtractionService(extractionRepo)
 
 	middleware.Register(middleware.TagAuthenticated, auth.Middleware(tokenSvc))
+	middleware.Register(middleware.TagAppAuthenticated, auth.AppMiddleware(appTokenSvc))
 
 	r := router.NewRouter()
 
@@ -81,6 +84,8 @@ func main() {
 	router.Register(r, extraction.NewGetExtractionHandler(extractionSvc))
 	router.Register(r, extraction.NewUpdateExtractionHandler(extractionSvc))
 	router.Register(r, extraction.NewDeleteExtractionHandler(extractionSvc))
+	router.Register(r, auth.NewCreateAppTokenHandler(appTokenSvc))
+	router.Register(r, auth.NewRevokeAppTokenHandler(appTokenSvc))
 
 	addr := fmt.Sprintf(":%s", cfg.Port)
 	log.Printf("server listening on %s", addr)

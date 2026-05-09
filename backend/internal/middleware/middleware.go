@@ -10,7 +10,8 @@ import (
 type Tag string
 
 const (
-	TagAuthenticated Tag = "authenticated"
+	TagAuthenticated    Tag = "authenticated"
+	TagAppAuthenticated Tag = "app_authenticated"
 )
 
 var registry = make(map[Tag]func(http.Handler) http.Handler)

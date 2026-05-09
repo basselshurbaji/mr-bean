@@ -12,6 +12,7 @@ type TokenType string
 const (
 	TokenTypeAccess  TokenType = "access"
 	TokenTypeRefresh TokenType = "refresh"
+	TokenTypeApp     TokenType = "app"
 )
 
 type Claims struct {
@@ -23,8 +24,10 @@ type Claims struct {
 type TokenService interface {
 	GenerateAccessToken(userID string) (string, error)
 	GenerateRefreshToken(userID string) (string, error)
+	GenerateAppToken(userID, tokenID string) (string, error)
 	ValidateAccessToken(raw string) (*Claims, error)
 	ValidateRefreshToken(raw string) (*Claims, error)
+	ValidateAppToken(raw string) (*Claims, error)
 }
 
 type jwtService struct {
@@ -59,6 +62,25 @@ func (s *jwtService) ValidateAccessToken(raw string) (*Claims, error) {
 // ValidateRefreshToken implements TokenService.
 func (s *jwtService) ValidateRefreshToken(raw string) (*Claims, error) {
 	return s.validate(raw, TokenTypeRefresh)
+}
+
+// GenerateAppToken implements TokenService.
+func (s *jwtService) GenerateAppToken(userID, tokenID string) (string, error) {
+	claims := Claims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			Subject:  userID,
+			ID:       tokenID,
+			IssuedAt: jwt.NewNumericDate(time.Now()),
+		},
+		UserID:    userID,
+		TokenType: TokenTypeApp,
+	}
+	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(s.secret)
+}
+
+// ValidateAppToken implements TokenService.
+func (s *jwtService) ValidateAppToken(raw string) (*Claims, error) {
+	return s.validate(raw, TokenTypeApp)
 }
 
 func (s *jwtService) generate(userID string, tokenType TokenType, expiry time.Duration) (string, error) {

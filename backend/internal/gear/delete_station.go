@@ -29,7 +29,7 @@ func (h *DeleteStationHandler) Pattern() string { return "/stations/{id}" }
 
 // Middlewares implements handler.Handler.
 func (h *DeleteStationHandler) Middlewares() []middleware.Tag {
-	return []middleware.Tag{middleware.TagAuthenticated}
+	return []middleware.Tag{middleware.TagAuthenticated, middleware.TagAppAuthenticated}
 }
 
 // Validate implements handler.Handler.

@@ -25,7 +25,7 @@ func (h *ListGearHandler) Pattern() string { return "/gear" }
 
 // Middlewares implements handler.Handler.
 func (h *ListGearHandler) Middlewares() []middleware.Tag {
-	return []middleware.Tag{middleware.TagAuthenticated}
+	return []middleware.Tag{middleware.TagAuthenticated, middleware.TagAppAuthenticated}
 }
 
 // Validate implements handler.Handler.

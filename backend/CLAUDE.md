@@ -116,14 +116,16 @@ Handlers declare which middleware they need by returning `[]middleware.Tag` from
 
 Currently defined tags:
 
-| Tag                            | Effect                                           |
-|--------------------------------|--------------------------------------------------|
-| `middleware.TagAuthenticated`  | Validates Bearer token, sets user ID in context  |
+| Tag                               | Effect                                                              |
+|-----------------------------------|---------------------------------------------------------------------|
+| `middleware.TagAuthenticated`     | Validates Bearer access token, sets user ID in context              |
+| `middleware.TagAppAuthenticated`  | Validates Bearer app token + revocation check, sets user ID in context |
 
 Register middleware once at startup before constructing the router:
 
 ```go
 middleware.Register(middleware.TagAuthenticated, auth.Middleware(tokenSvc))
+middleware.Register(middleware.TagAppAuthenticated, auth.AppMiddleware(appTokenSvc))
 ```
 
 ### Registration
@@ -202,7 +204,9 @@ JWT-only. No OAuth2 yet (planned).
 
 - **Access tokens**: short-lived (default 1 min), HS256-signed JWT with `typ:"access"` claim
 - **Refresh tokens**: long-lived (default 1440 min), same signing, `typ:"refresh"` claim
-- `ValidateAccessToken` and `ValidateRefreshToken` each reject the wrong token type
+- **App tokens**: non-expiring, HS256-signed JWT with `typ:"app"` claim and `jti` set to the DB record ID; stateful — stored in `app_tokens` table and revocable per-user
+- `ValidateAccessToken`, `ValidateRefreshToken`, and `ValidateAppToken` each reject the wrong token type
+- App token validation (`AppTokenService.Validate`) verifies the JWT then hits the DB to check revocation on every request
 - Auth middleware validates the Bearer token and sets user ID in context via `principal`
 - Individual handlers never perform auth checks — that belongs in middleware
 
