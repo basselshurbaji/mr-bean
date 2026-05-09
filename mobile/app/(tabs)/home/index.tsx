@@ -6,11 +6,13 @@ import {
   StyleSheet,
   Pressable,
   Animated,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
-import { palette, spacing, radii } from '@/src/theme';
+import { palette, radii } from '@/src/theme';
+import { BeanMark } from '@/src/components/BeanMark';
 import { useExtractions } from '@/src/context/ExtractionsContext';
 import { Extraction, computeZone } from '@/src/api/extractions';
 import { ExtractionModal } from './ExtractionModal';
@@ -219,7 +221,7 @@ const cardStyles = StyleSheet.create({
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
-  const { extractions } = useExtractions();
+  const { extractions, refresh: refreshExtractions, loading: extractionsLoading } = useExtractions();
   const [modalOpen, setModalOpen] = useState(false);
 
   const lastExtraction = extractions[0] ?? null;
@@ -255,6 +257,13 @@ export default function HomeScreen() {
         style={styles.scroll}
         contentContainerStyle={{ paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={extractionsLoading}
+            onRefresh={refreshExtractions}
+            tintColor={palette.caramel400}
+          />
+        }
       >
         {/* Header */}
         <View
@@ -268,12 +277,7 @@ export default function HomeScreen() {
             <Text style={styles.headlineReady}>Ready to pull</Text>
             <Text style={styles.headlineShot}>a shot?</Text>
           </View>
-          {/* Bean mark logo placeholder */}
-          <View style={styles.logoMark}>
-            <View style={styles.logoOuter}>
-              <View style={styles.logoInner} />
-            </View>
-          </View>
+          <BeanMark size={34} />
         </View>
 
         {/* Extraction invitation card */}
@@ -315,10 +319,6 @@ export default function HomeScreen() {
           <View style={styles.recentSection}>
             <View style={styles.recentHeader}>
               <Text style={styles.recentTitle}>Recent extractions</Text>
-              <Pressable style={styles.allLink}>
-                <Text style={styles.allLinkText}>All</Text>
-                <Feather name="chevron-right" size={14} color={palette.matcha500} />
-              </Pressable>
             </View>
             <View style={styles.cardList}>
               {recent.map(e => (
@@ -378,25 +378,6 @@ const styles = StyleSheet.create({
     letterSpacing: -0.8,
     lineHeight: 32 * 1.1,
     color: palette.caramel500,
-  },
-
-  // Logo mark (simplified SVG stand-in)
-  logoMark: {
-    marginTop: 4,
-  },
-  logoOuter: {
-    width: 34,
-    height: 44,
-    borderRadius: 17,
-    backgroundColor: palette.espresso800,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logoInner: {
-    width: 14,
-    height: 18,
-    borderRadius: 7,
-    backgroundColor: palette.caramel400,
   },
 
   // Invite card
@@ -509,16 +490,6 @@ const styles = StyleSheet.create({
     fontFamily: 'PlayfairDisplay_700Bold',
     fontSize: 20,
     color: palette.espresso800,
-  },
-  allLink: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
-  },
-  allLinkText: {
-    fontFamily: 'DMSans_700Bold',
-    fontSize: 13,
-    color: palette.matcha500,
   },
   cardList: {
     gap: 10,

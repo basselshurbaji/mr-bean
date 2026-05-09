@@ -10,6 +10,7 @@ import {
   Dimensions,
   TextInput,
   Alert,
+  RefreshControl,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { Feather } from '@expo/vector-icons';
@@ -28,7 +29,6 @@ import { useGear } from '@/src/context/GearContext';
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SHEET_HEIGHT = SCREEN_HEIGHT * 0.92;
 const SUB_SHEET_MAX = SCREEN_HEIGHT * 0.88;
-const PRE_INF_DURATION = 5; // seconds
 
 const RING_SIZE = 220;
 const RING_CX = 110;
@@ -39,7 +39,7 @@ const CIRCUMFERENCE = 2 * Math.PI * RING_R;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-type TimerState = 'idle' | 'preinfusion' | 'running' | 'done';
+type TimerState = 'idle' | 'running' | 'done';
 
 function fmtTime(s: number): string {
   const m = Math.floor(s / 60);
@@ -77,9 +77,10 @@ interface BeanSheetProps {
   onSelect: (bean: Bean) => void;
   onClose: () => void;
   translateY: Animated.Value;
+  onRefresh: () => void;
 }
 
-function BeanSheet({ beans, loading, selectedId, onSelect, onClose, translateY }: BeanSheetProps) {
+function BeanSheet({ beans, loading, selectedId, onSelect, onClose, translateY, onRefresh }: BeanSheetProps) {
   return (
     <Animated.View style={[styles.subSheet, { transform: [{ translateY }] }]}>
       <View style={styles.subHandle} />
@@ -89,7 +90,13 @@ function BeanSheet({ beans, loading, selectedId, onSelect, onClose, translateY }
           <Feather name="x" size={16} color={palette.espresso400} />
         </Pressable>
       </View>
-      <ScrollView style={styles.subList} contentContainerStyle={styles.subListContent}>
+      <ScrollView
+        style={styles.subList}
+        contentContainerStyle={styles.subListContent}
+        refreshControl={
+          <RefreshControl refreshing={loading} onRefresh={onRefresh} tintColor={palette.caramel400} />
+        }
+      >
         {loading && beans.length === 0 ? (
           <Text style={styles.emptyHint}>Loading beans…</Text>
         ) : beans.length === 0 ? (
@@ -144,9 +151,10 @@ interface GearSheetProps {
   onSave: (ids: string[]) => void;
   onClose: () => void;
   translateY: Animated.Value;
+  onRefresh: () => void;
 }
 
-function GearSheet({ gear, stations, loading, selectedIds, onSave, onClose, translateY }: GearSheetProps) {
+function GearSheet({ gear, stations, loading, selectedIds, onSave, onClose, translateY, onRefresh }: GearSheetProps) {
   const [localIds, setLocalIds] = useState<string[]>(selectedIds);
 
   useEffect(() => {
@@ -176,7 +184,13 @@ function GearSheet({ gear, stations, loading, selectedIds, onSave, onClose, tran
         </Pressable>
       </View>
 
-      <ScrollView style={styles.subList} contentContainerStyle={styles.subListContent}>
+      <ScrollView
+        style={styles.subList}
+        contentContainerStyle={styles.subListContent}
+        refreshControl={
+          <RefreshControl refreshing={loading} onRefresh={onRefresh} tintColor={palette.caramel400} />
+        }
+      >
         {stations.length > 0 && (
           <>
             <Text style={styles.gearSectionLabel}>Stations</Text>
@@ -346,7 +360,6 @@ export function ExtractionModal({
   const [elapsed, setElapsed] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const runStartRef = useRef(0);
-  const preInfStartRef = useRef(0);
 
   // ── Form ──
   const [selectedBean, setSelectedBean] = useState<Bean | null>(null);
@@ -399,7 +412,7 @@ export function ExtractionModal({
   }, [visible, sheetAnim, backdropAnim, beans.length, gear.length, refreshBeans, refreshGear]);
 
   function dismiss() {
-    if (timerState === 'running' || timerState === 'preinfusion') return;
+    if (timerState === 'running') return;
     closeBeanSheet();
     closeGearSheet();
     Animated.parallel([
@@ -484,29 +497,13 @@ export function ExtractionModal({
   }
 
   function startExtraction() {
-    if (preInfusion) {
-      preInfStartRef.current = Date.now();
-      const nextState: TimerState = 'preinfusion';
-      timerStateRef.current = nextState;
-      setTimerState(nextState);
-    } else {
-      runStartRef.current = Date.now();
-      const nextState: TimerState = 'running';
-      timerStateRef.current = nextState;
-      setTimerState(nextState);
-    }
+    runStartRef.current = Date.now();
+    timerStateRef.current = 'running';
+    setTimerState('running');
 
     intervalRef.current = setInterval(() => {
-      if (timerStateRef.current === 'preinfusion') {
-        const preElapsed = (Date.now() - preInfStartRef.current) / 1000;
-        if (preElapsed >= PRE_INF_DURATION) {
-          runStartRef.current = Date.now();
-          timerStateRef.current = 'running';
-          setTimerState('running');
-        }
-      } else if (timerStateRef.current === 'running') {
-        const runElapsed = (Date.now() - runStartRef.current) / 1000;
-        setElapsed(runElapsed);
+      if (timerStateRef.current === 'running') {
+        setElapsed((Date.now() - runStartRef.current) / 1000);
       }
     }, 50);
   }
@@ -598,10 +595,8 @@ export function ExtractionModal({
 
   const isIdle = timerState === 'idle';
   const isRunning = timerState === 'running';
-  const isPreInf = timerState === 'preinfusion';
   const isDone = timerState === 'done';
-  const isActive = isRunning || isPreInf;
-  const fieldsLocked = isActive;
+  const fieldsLocked = isRunning;
 
   const subSheetActive = beanSheetOpen || gearSheetOpen;
 
@@ -641,7 +636,7 @@ export function ExtractionModal({
           {/* Header */}
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>New extraction</Text>
-            {!isActive && (
+            {!isRunning && (
               <Pressable style={styles.closeBtn} onPress={dismiss}>
                 <Feather name="x" size={16} color={palette.espresso500} />
               </Pressable>
@@ -717,9 +712,6 @@ export function ExtractionModal({
 
             {/* Timer ring */}
             <View style={styles.ringContainer}>
-              {isPreInf && (
-                <Text style={styles.preInfLabel}>PRE-INFUSION</Text>
-              )}
               <TimerRing
                 timerState={timerState}
                 elapsed={elapsed}
@@ -729,11 +721,6 @@ export function ExtractionModal({
                 {isIdle ? (
                   <>
                     <Text style={styles.ringReadyLabel}>ready</Text>
-                    <Text style={styles.ringIdleTime}>--:--</Text>
-                  </>
-                ) : isPreInf ? (
-                  <>
-                    <Text style={styles.ringReadyLabel}>pre-infusion</Text>
                     <Text style={styles.ringIdleTime}>--:--</Text>
                   </>
                 ) : (
@@ -833,7 +820,7 @@ export function ExtractionModal({
             {/* Gear row */}
             <Pressable
               style={styles.gearRow}
-              onPress={!isActive ? openGearSheet : undefined}
+              onPress={!isRunning ? openGearSheet : undefined}
             >
               <View>
                 <Text style={styles.gearLabel}>GEAR USED</Text>
@@ -847,7 +834,7 @@ export function ExtractionModal({
                   {gearLabel}
                 </Text>
               </View>
-              {!isActive && (
+              {!isRunning && (
                 <Feather name="chevron-right" size={16} color={palette.espresso400} />
               )}
             </Pressable>
@@ -901,7 +888,7 @@ export function ExtractionModal({
                   </Pressable>
                 </>
               )}
-              {isActive && (
+              {isRunning && (
                 <Pressable style={styles.stopBtn} onPress={stopExtraction}>
                   <Feather name="square" size={18} color="#fff" />
                   <Text style={styles.ctaBtnText}>Stop</Text>
@@ -944,6 +931,7 @@ export function ExtractionModal({
             onSelect={setSelectedBean}
             onClose={closeBeanSheet}
             translateY={beanSheetAnim}
+            onRefresh={refreshBeans}
           />
         )}
 
@@ -957,6 +945,7 @@ export function ExtractionModal({
             onSave={setSelectedGearIds}
             onClose={closeGearSheet}
             translateY={gearSheetAnim}
+            onRefresh={refreshGear}
           />
         )}
       </View>
@@ -1164,13 +1153,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     letterSpacing: 0.05 * 12,
     marginTop: 4,
-  },
-  preInfLabel: {
-    fontFamily: 'DMSans_700Bold',
-    fontSize: 11,
-    color: palette.caramel400,
-    letterSpacing: 0.05 * 11,
-    marginBottom: 4,
   },
   zoneBadge: {
     borderRadius: radii.full,
