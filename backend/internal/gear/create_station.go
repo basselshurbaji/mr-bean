@@ -30,7 +30,7 @@ func (h *CreateStationHandler) Pattern() string { return "/stations" }
 
 // Middlewares implements handler.Handler.
 func (h *CreateStationHandler) Middlewares() []middleware.Tag {
-	return []middleware.Tag{middleware.TagAuthenticated, middleware.TagAppAuthenticated}
+	return []middleware.Tag{middleware.TagAnyAuthenticated}
 }
 
 // Validate implements handler.Handler.

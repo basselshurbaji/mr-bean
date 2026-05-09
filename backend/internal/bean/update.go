@@ -36,7 +36,7 @@ func (h *UpdateBeanHandler) Pattern() string { return "/beans/{id}" }
 
 // Middlewares implements handler.Handler.
 func (h *UpdateBeanHandler) Middlewares() []middleware.Tag {
-	return []middleware.Tag{middleware.TagAuthenticated, middleware.TagAppAuthenticated}
+	return []middleware.Tag{middleware.TagAnyAuthenticated}
 }
 
 // Validate implements handler.Handler.

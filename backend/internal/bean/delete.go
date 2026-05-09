@@ -29,7 +29,7 @@ func (h *DeleteBeanHandler) Pattern() string { return "/beans/{id}" }
 
 // Middlewares implements handler.Handler.
 func (h *DeleteBeanHandler) Middlewares() []middleware.Tag {
-	return []middleware.Tag{middleware.TagAuthenticated, middleware.TagAppAuthenticated}
+	return []middleware.Tag{middleware.TagAnyAuthenticated}
 }
 
 // Validate implements handler.Handler.

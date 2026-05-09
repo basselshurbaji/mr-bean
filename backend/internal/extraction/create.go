@@ -38,7 +38,7 @@ func (h *CreateExtractionHandler) Pattern() string { return "/extractions" }
 
 // Middlewares implements handler.Handler.
 func (h *CreateExtractionHandler) Middlewares() []middleware.Tag {
-	return []middleware.Tag{middleware.TagAuthenticated, middleware.TagAppAuthenticated}
+	return []middleware.Tag{middleware.TagAnyAuthenticated}
 }
 
 // Validate implements handler.Handler.

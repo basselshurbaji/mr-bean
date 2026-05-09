@@ -39,7 +39,7 @@ func (h *UpdateExtractionHandler) Pattern() string { return "/extractions/{id}" 
 
 // Middlewares implements handler.Handler.
 func (h *UpdateExtractionHandler) Middlewares() []middleware.Tag {
-	return []middleware.Tag{middleware.TagAuthenticated, middleware.TagAppAuthenticated}
+	return []middleware.Tag{middleware.TagAnyAuthenticated}
 }
 
 // Validate implements handler.Handler.

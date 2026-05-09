@@ -11,7 +11,7 @@ type Tag string
 
 const (
 	TagAuthenticated    Tag = "authenticated"
-	TagAppAuthenticated Tag = "app_authenticated"
+	TagAnyAuthenticated Tag = "any_authenticated"
 )
 
 var registry = make(map[Tag]func(http.Handler) http.Handler)

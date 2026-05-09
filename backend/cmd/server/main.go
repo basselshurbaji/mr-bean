@@ -55,7 +55,10 @@ func main() {
 	extractionSvc := extraction.NewExtractionService(extractionRepo)
 
 	middleware.Register(middleware.TagAuthenticated, auth.Middleware(tokenSvc))
-	middleware.Register(middleware.TagAppAuthenticated, auth.AppMiddleware(appTokenSvc))
+	middleware.Register(middleware.TagAnyAuthenticated, middleware.Or(
+		auth.Middleware(tokenSvc),
+		auth.AppMiddleware(appTokenSvc),
+	))
 
 	r := router.NewRouter()
 

@@ -35,7 +35,7 @@ func (h *UpdateGearHandler) Pattern() string { return "/gear/{id}" }
 
 // Middlewares implements handler.Handler.
 func (h *UpdateGearHandler) Middlewares() []middleware.Tag {
-	return []middleware.Tag{middleware.TagAuthenticated, middleware.TagAppAuthenticated}
+	return []middleware.Tag{middleware.TagAnyAuthenticated}
 }
 
 // Validate implements handler.Handler.
