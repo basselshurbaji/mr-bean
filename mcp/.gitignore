@@ -1,0 +1,4 @@
+mcp-server
+mcp
+*.exe
+.env
