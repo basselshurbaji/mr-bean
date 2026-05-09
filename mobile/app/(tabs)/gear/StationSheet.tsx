@@ -8,11 +8,13 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { KeyboardAvoidingView, KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useEffect, useRef, useState } from 'react';
 import { colors, palette, radii, spacing } from '@/src/theme';
 import { gearApi, GearItem, Station } from '@/src/api/gear';
 import GearIcon from '@/src/components/GearIcon';
+import { SheetLayout } from '@/src/components/SheetLayout';
 
 interface Props {
   gear: GearItem[];
@@ -23,6 +25,7 @@ interface Props {
 }
 
 export default function StationSheet({ gear, editStation, onClose, onSaved, onDeleted }: Props) {
+  const insets = useSafeAreaInsets();
   const translateY = useRef(new Animated.Value(600)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
 
@@ -100,166 +103,131 @@ export default function StationSheet({ gear, editStation, onClose, onSaved, onDe
 
   return (
     <Modal transparent animationType="none" onRequestClose={dismiss}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
-      <View style={styles.overlay}>
-        <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={dismiss} />
-        </Animated.View>
+      <SheetLayout backdropOpacity={backdropOpacity} translateY={translateY} onClose={dismiss}>
+        <KeyboardAwareScrollView
+          contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 24 }]}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          bottomOffset={16}
+        >
+            <Text style={styles.title}>
+              {isEdit ? 'Edit station' : 'New station'}
+            </Text>
 
-        <Animated.View style={[styles.sheet, { transform: [{ translateY }] }]}>
-          <View style={styles.handle} />
-
-          <KeyboardAwareScrollView
-            contentContainerStyle={styles.content}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
-              <Text style={styles.title}>
-                {isEdit ? 'Edit station' : 'New station'}
+            {/* Station name */}
+            <View style={styles.fieldWrap}>
+              <Text style={styles.fieldLabel}>
+                Station name <Text style={styles.required}>*</Text>
               </Text>
+              <TextInput
+                style={[styles.input, focused && styles.inputFocused]}
+                placeholder="e.g. Morning routine"
+                placeholderTextColor={colors.fgDisabled}
+                value={name}
+                onChangeText={setName}
+                onFocus={() => setFocused(true)}
+                onBlur={() => setFocused(false)}
+                returnKeyType="done"
+                textContentType="none"
+                autoComplete="off"
+              />
+            </View>
 
-              {/* Station name */}
-              <View style={styles.fieldWrap}>
-                <Text style={styles.fieldLabel}>
-                  Station name <Text style={styles.required}>*</Text>
-                </Text>
-                <TextInput
-                  style={[styles.input, focused && styles.inputFocused]}
-                  placeholder="e.g. Morning routine"
-                  placeholderTextColor={colors.fgDisabled}
-                  value={name}
-                  onChangeText={setName}
-                  onFocus={() => setFocused(true)}
-                  onBlur={() => setFocused(false)}
-                  returnKeyType="done"
-                  textContentType="none"
-                  autoComplete="off"
-                />
-              </View>
+            <Text style={styles.hint}>
+              Stations pre-select tools when logging — you can always tweak before saving a shot.
+            </Text>
 
-              <Text style={styles.hint}>
-                Stations pre-select tools when logging — you can always tweak before saving a shot.
-              </Text>
-
-              {/* Gear list */}
-              {sortedGear.length > 0 && (
-                <View style={styles.gearList}>
-                  {sortedGear.map(item => {
-                    const selected = selectedIds.includes(item.id);
-                    const sub = [item.brand, item.model].filter(Boolean).join(' · ');
-                    return (
-                      <Pressable
-                        key={item.id}
-                        style={[styles.gearRow, selected && styles.gearRowSelected]}
-                        onPress={() => toggleGear(item.id)}
-                      >
-                        <View style={[styles.gearBubble, selected && styles.gearBubbleSelected]}>
-                          <GearIcon
-                            typeId={item.type_id}
-                            size={22}
-                            color={selected ? palette.cream100 : palette.espresso800}
-                          />
-                        </View>
-                        <View style={styles.gearText}>
-                          <Text style={[styles.gearName, selected && styles.gearNameSelected]}>
-                            {item.name}
+            {/* Gear list */}
+            {sortedGear.length > 0 && (
+              <View style={styles.gearList}>
+                {sortedGear.map(item => {
+                  const selected = selectedIds.includes(item.id);
+                  const sub = [item.brand, item.model].filter(Boolean).join(' · ');
+                  return (
+                    <Pressable
+                      key={item.id}
+                      style={[styles.gearRow, selected && styles.gearRowSelected]}
+                      onPress={() => toggleGear(item.id)}
+                    >
+                      <View style={[styles.gearBubble, selected && styles.gearBubbleSelected]}>
+                        <GearIcon
+                          typeId={item.type_id}
+                          size={22}
+                          color={selected ? palette.cream100 : palette.espresso800}
+                        />
+                      </View>
+                      <View style={styles.gearText}>
+                        <Text style={[styles.gearName, selected && styles.gearNameSelected]}>
+                          {item.name}
+                        </Text>
+                        {sub ? (
+                          <Text style={[styles.gearSub, selected && styles.gearSubSelected]}>
+                            {sub}
                           </Text>
-                          {sub ? (
-                            <Text style={[styles.gearSub, selected && styles.gearSubSelected]}>
-                              {sub}
-                            </Text>
-                          ) : null}
-                        </View>
-                        <View style={[styles.toggle, selected && styles.toggleSelected]}>
-                          {selected && (
-                            <Text style={styles.toggleCheck}>✓</Text>
-                          )}
-                        </View>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              )}
+                        ) : null}
+                      </View>
+                      <View style={[styles.toggle, selected && styles.toggleSelected]}>
+                        {selected && (
+                          <Text style={styles.toggleCheck}>✓</Text>
+                        )}
+                      </View>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            )}
 
-              {error && (
-                <View style={styles.errorBanner}>
-                  <Text style={styles.errorText}>{error}</Text>
-                </View>
-              )}
+            {error && (
+              <View style={styles.errorBanner}>
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
+            )}
 
+            <Pressable
+              style={({ pressed }) => [
+                styles.cta,
+                (!canSave || saving) && styles.ctaDisabled,
+                pressed && canSave && !saving && styles.ctaPressed,
+              ]}
+              onPress={save}
+              disabled={!canSave || saving}
+            >
+              {saving ? (
+                <ActivityIndicator color={palette.cream100} />
+              ) : (
+                <Text style={styles.ctaLabel}>
+                  {isEdit
+                    ? 'Save changes'
+                    : `Create station · ${selectedIds.length} item${selectedIds.length !== 1 ? 's' : ''}`}
+                </Text>
+              )}
+            </Pressable>
+
+            {isEdit && (
               <Pressable
                 style={({ pressed }) => [
-                  styles.cta,
-                  (!canSave || saving) && styles.ctaDisabled,
-                  pressed && canSave && !saving && styles.ctaPressed,
+                  styles.deleteBtn,
+                  pressed && { opacity: 0.75 },
+                  deleting && { opacity: 0.38 },
                 ]}
-                onPress={save}
-                disabled={!canSave || saving}
+                onPress={deleteStation}
+                disabled={deleting}
               >
-                {saving ? (
-                  <ActivityIndicator color={palette.cream100} />
+                {deleting ? (
+                  <ActivityIndicator color={palette.error500} />
                 ) : (
-                  <Text style={styles.ctaLabel}>
-                    {isEdit
-                      ? 'Save changes'
-                      : `Create station · ${selectedIds.length} item${selectedIds.length !== 1 ? 's' : ''}`}
-                  </Text>
+                  <Text style={styles.deleteBtnLabel}>Delete station</Text>
                 )}
               </Pressable>
-
-              {isEdit && (
-                <Pressable
-                  style={({ pressed }) => [
-                    styles.deleteBtn,
-                    pressed && { opacity: 0.75 },
-                    deleting && { opacity: 0.38 },
-                  ]}
-                  onPress={deleteStation}
-                  disabled={deleting}
-                >
-                  {deleting ? (
-                    <ActivityIndicator color={palette.error500} />
-                  ) : (
-                    <Text style={styles.deleteBtnLabel}>Delete station</Text>
-                  )}
-                </Pressable>
-              )}
-          </KeyboardAwareScrollView>
-        </Animated.View>
-      </View>
-      </KeyboardAvoidingView>
+            )}
+        </KeyboardAwareScrollView>
+      </SheetLayout>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: { flex: 1, justifyContent: 'flex-end' },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(28,15,7,0.42)',
-  },
-  sheet: {
-    backgroundColor: palette.cream100,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    maxHeight: '92%',
-    shadowColor: palette.espresso800,
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.16,
-    shadowRadius: 32,
-    elevation: 12,
-  },
-  handle: {
-    width: 36,
-    height: 4,
-    borderRadius: 9999,
-    backgroundColor: palette.cream500,
-    alignSelf: 'center',
-    marginTop: 14,
-    marginBottom: 4,
-  },
-
-  content: { paddingHorizontal: spacing[5], paddingBottom: 40, gap: 16 },
+  content: { paddingHorizontal: spacing[5], gap: 16 },
 
   title: {
     fontFamily: 'PlayfairDisplay_700Bold',

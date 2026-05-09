@@ -627,12 +627,11 @@ export function ExtractionModal({
       onRequestClose={dismiss}
     >
       <View style={styles.modalRoot}>
-        {/* Backdrop */}
+        {/* Backdrop: outside KAV so it covers full screen including keyboard area */}
         <Animated.View style={[styles.backdrop, { opacity: backdropAnim }]}>
           <Pressable style={StyleSheet.absoluteFill} onPress={dismiss} />
         </Animated.View>
 
-        {/* Main sheet */}
         <Animated.View
           style={[styles.sheet, { transform: [{ translateY: sheetAnim }] }]}
         >
@@ -653,8 +652,7 @@ export function ExtractionModal({
             style={styles.scroll}
             contentContainerStyle={styles.scrollContent}
             keyboardShouldPersistTaps="handled"
-            enableOnAndroid
-            extraScrollHeight={16}
+            bottomOffset={24}
           >
             {/* Bean selector */}
             <Pressable
@@ -1019,7 +1017,6 @@ function StatField({
 const styles = StyleSheet.create({
   modalRoot: {
     flex: 1,
-    justifyContent: 'flex-end',
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,

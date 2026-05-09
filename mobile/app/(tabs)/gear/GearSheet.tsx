@@ -9,11 +9,13 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { KeyboardAvoidingView, KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useEffect, useRef, useState } from 'react';
 import { colors, palette, radii, spacing } from '@/src/theme';
 import { gearApi, GearItem } from '@/src/api/gear';
 import GearIcon from '@/src/components/GearIcon';
+import { SheetLayout } from '@/src/components/SheetLayout';
 
 const TYPES = [
   { id: 'machine',     label: 'Espresso machine'  },
@@ -35,6 +37,7 @@ interface Props {
 }
 
 export default function GearSheet({ editItem, onClose, onSaved }: Props) {
+  const insets = useSafeAreaInsets();
   const translateY = useRef(new Animated.Value(600)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
 
@@ -94,212 +97,172 @@ export default function GearSheet({ editItem, onClose, onSaved }: Props) {
 
   return (
     <Modal transparent animationType="none" onRequestClose={dismiss}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
-      <View style={styles.overlay}>
-        <Animated.View
-          style={[styles.backdrop, { opacity: backdropOpacity }]}
-        >
-          <Pressable style={StyleSheet.absoluteFill} onPress={dismiss} />
-        </Animated.View>
-
-        <Animated.View style={[styles.sheet, { transform: [{ translateY }] }]}>
-          {/* Drag handle */}
-          <View style={styles.handle} />
-
-          <>
-            {step === 'type' ? (
-              <ScrollView
-                contentContainerStyle={styles.typeContent}
-                showsVerticalScrollIndicator={false}
-              >
-                <Text style={styles.sheetTitle}>What type of gear?</Text>
-                <View style={styles.typeGrid}>
-                  {TYPES.map(t => (
-                    <Pressable
-                      key={t.id}
-                      style={({ pressed }) => [
-                        styles.typeBtn,
-                        pressed && styles.typeBtnPressed,
-                      ]}
-                      onPress={() => {
-                        setSelectedType(t.id);
-                        setStep('form');
-                      }}
-                    >
-                      <GearIcon typeId={t.id} size={30} color={palette.espresso800} />
-                      <Text style={styles.typeBtnLabel}>{t.label}</Text>
-                    </Pressable>
-                  ))}
-                </View>
-              </ScrollView>
-            ) : (
-              <KeyboardAwareScrollView
-                contentContainerStyle={styles.formContent}
-                showsVerticalScrollIndicator={false}
-                keyboardShouldPersistTaps="handled"
-              >
-                {!isEdit && (
-                  <Pressable onPress={() => setStep('type')} style={styles.backLink}>
-                    <Text style={styles.backLinkText}>← Change type</Text>
-                  </Pressable>
-                )}
-                <Text style={styles.sheetTitle}>
-                  {isEdit ? 'Edit gear' : 'Add gear'}
-                </Text>
-                <Text style={styles.sheetSub}>{typeLabel}</Text>
-
-                {/* Name */}
-                <View style={styles.fieldWrap}>
-                  <Text style={styles.fieldLabel}>
-                    Name <Text style={styles.required}>*</Text>
-                  </Text>
-                  <TextInput
-                    style={[styles.input, focused === 'name' && styles.inputFocused]}
-                    placeholder="e.g. Niche Zero"
-                    placeholderTextColor={colors.fgDisabled}
-                    value={form.name}
-                    onChangeText={v => setForm(f => ({ ...f, name: v }))}
-                    onFocus={() => setFocused('name')}
-                    onBlur={() => setFocused(null)}
-                    returnKeyType="next"
-                    textContentType="none"
-                    autoComplete="off"
-                  />
-                </View>
-
-                {/* Brand + Model row */}
-                <View style={styles.row}>
-                  <View style={styles.rowCol}>
-                    <Text style={styles.fieldLabel}>Brand</Text>
-                    <TextInput
-                      style={[styles.input, focused === 'brand' && styles.inputFocused]}
-                      placeholder="Niche"
-                      placeholderTextColor={colors.fgDisabled}
-                      value={form.brand}
-                      onChangeText={v => setForm(f => ({ ...f, brand: v }))}
-                      onFocus={() => setFocused('brand')}
-                      onBlur={() => setFocused(null)}
-                      returnKeyType="next"
-                      textContentType="none"
-                      autoComplete="off"
-                    />
-                  </View>
-                  <View style={styles.rowCol}>
-                    <Text style={styles.fieldLabel}>Model</Text>
-                    <TextInput
-                      style={[styles.input, focused === 'model' && styles.inputFocused]}
-                      placeholder="Zero"
-                      placeholderTextColor={colors.fgDisabled}
-                      value={form.model}
-                      onChangeText={v => setForm(f => ({ ...f, model: v }))}
-                      onFocus={() => setFocused('model')}
-                      onBlur={() => setFocused(null)}
-                      returnKeyType="next"
-                      textContentType="none"
-                      autoComplete="off"
-                    />
-                  </View>
-                </View>
-
-                {/* Year */}
-                <View style={styles.fieldWrap}>
-                  <Text style={styles.fieldLabel}>Year purchased</Text>
-                  <TextInput
-                    style={[styles.input, focused === 'year' && styles.inputFocused]}
-                    placeholder="2022"
-                    placeholderTextColor={colors.fgDisabled}
-                    value={form.year}
-                    onChangeText={v => setForm(f => ({ ...f, year: v.replace(/\D/g, '').slice(0, 4) }))}
-                    onFocus={() => setFocused('year')}
-                    onBlur={() => setFocused(null)}
-                    keyboardType="number-pad"
-                    maxLength={4}
-                    returnKeyType="next"
-                    textContentType="none"
-                    autoComplete="off"
-                  />
-                </View>
-
-                {/* Notes */}
-                <View style={styles.fieldWrap}>
-                  <Text style={styles.fieldLabel}>Notes</Text>
-                  <TextInput
-                    style={[styles.input, styles.textarea, focused === 'notes' && styles.inputFocused]}
-                    placeholder="Any details worth remembering…"
-                    placeholderTextColor={colors.fgDisabled}
-                    value={form.notes}
-                    onChangeText={v => setForm(f => ({ ...f, notes: v }))}
-                    onFocus={() => setFocused('notes')}
-                    onBlur={() => setFocused(null)}
-                    multiline
-                    numberOfLines={3}
-                    textAlignVertical="top"
-                    textContentType="none"
-                    autoComplete="off"
-                  />
-                </View>
-
-                {error && (
-                  <View style={styles.errorBanner}>
-                    <Text style={styles.errorText}>{error}</Text>
-                  </View>
-                )}
-
+      <SheetLayout backdropOpacity={backdropOpacity} translateY={translateY} onClose={dismiss}>
+        {step === 'type' ? (
+          <ScrollView
+            contentContainerStyle={[styles.typeContent, { paddingBottom: insets.bottom + 24 }]}
+            showsVerticalScrollIndicator={false}
+          >
+            <Text style={styles.sheetTitle}>What type of gear?</Text>
+            <View style={styles.typeGrid}>
+              {TYPES.map(t => (
                 <Pressable
+                  key={t.id}
                   style={({ pressed }) => [
-                    styles.cta,
-                    (!canSave || saving) && styles.ctaDisabled,
-                    pressed && canSave && !saving && styles.ctaPressed,
+                    styles.typeBtn,
+                    pressed && styles.typeBtnPressed,
                   ]}
-                  onPress={save}
-                  disabled={!canSave || saving}
+                  onPress={() => {
+                    setSelectedType(t.id);
+                    setStep('form');
+                  }}
                 >
-                  {saving ? (
-                    <ActivityIndicator color={palette.cream100} />
-                  ) : (
-                    <Text style={styles.ctaLabel}>
-                      {isEdit ? 'Save changes' : 'Add to my gear'}
-                    </Text>
-                  )}
+                  <GearIcon typeId={t.id} size={30} color={palette.espresso800} />
+                  <Text style={styles.typeBtnLabel}>{t.label}</Text>
                 </Pressable>
-              </KeyboardAwareScrollView>
+              ))}
+            </View>
+          </ScrollView>
+        ) : (
+          <KeyboardAwareScrollView
+            contentContainerStyle={[styles.formContent, { paddingBottom: insets.bottom + 24 }]}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            bottomOffset={16}
+          >
+            {!isEdit && (
+              <Pressable onPress={() => setStep('type')} style={styles.backLink}>
+                <Text style={styles.backLinkText}>← Change type</Text>
+              </Pressable>
             )}
-          </>
-        </Animated.View>
-      </View>
-      </KeyboardAvoidingView>
+            <Text style={styles.sheetTitle}>
+              {isEdit ? 'Edit gear' : 'Add gear'}
+            </Text>
+            <Text style={styles.sheetSub}>{typeLabel}</Text>
+
+            {/* Name */}
+            <View style={styles.fieldWrap}>
+              <Text style={styles.fieldLabel}>
+                Name <Text style={styles.required}>*</Text>
+              </Text>
+              <TextInput
+                style={[styles.input, focused === 'name' && styles.inputFocused]}
+                placeholder="e.g. Niche Zero"
+                placeholderTextColor={colors.fgDisabled}
+                value={form.name}
+                onChangeText={v => setForm(f => ({ ...f, name: v }))}
+                onFocus={() => setFocused('name')}
+                onBlur={() => setFocused(null)}
+                returnKeyType="next"
+                textContentType="none"
+                autoComplete="off"
+              />
+            </View>
+
+            {/* Brand + Model row */}
+            <View style={styles.row}>
+              <View style={styles.rowCol}>
+                <Text style={styles.fieldLabel}>Brand</Text>
+                <TextInput
+                  style={[styles.input, focused === 'brand' && styles.inputFocused]}
+                  placeholder="Niche"
+                  placeholderTextColor={colors.fgDisabled}
+                  value={form.brand}
+                  onChangeText={v => setForm(f => ({ ...f, brand: v }))}
+                  onFocus={() => setFocused('brand')}
+                  onBlur={() => setFocused(null)}
+                  returnKeyType="next"
+                  textContentType="none"
+                  autoComplete="off"
+                />
+              </View>
+              <View style={styles.rowCol}>
+                <Text style={styles.fieldLabel}>Model</Text>
+                <TextInput
+                  style={[styles.input, focused === 'model' && styles.inputFocused]}
+                  placeholder="Zero"
+                  placeholderTextColor={colors.fgDisabled}
+                  value={form.model}
+                  onChangeText={v => setForm(f => ({ ...f, model: v }))}
+                  onFocus={() => setFocused('model')}
+                  onBlur={() => setFocused(null)}
+                  returnKeyType="next"
+                  textContentType="none"
+                  autoComplete="off"
+                />
+              </View>
+            </View>
+
+            {/* Year */}
+            <View style={styles.fieldWrap}>
+              <Text style={styles.fieldLabel}>Year purchased</Text>
+              <TextInput
+                style={[styles.input, focused === 'year' && styles.inputFocused]}
+                placeholder="2022"
+                placeholderTextColor={colors.fgDisabled}
+                value={form.year}
+                onChangeText={v => setForm(f => ({ ...f, year: v.replace(/\D/g, '').slice(0, 4) }))}
+                onFocus={() => setFocused('year')}
+                onBlur={() => setFocused(null)}
+                keyboardType="number-pad"
+                maxLength={4}
+                returnKeyType="next"
+                textContentType="none"
+                autoComplete="off"
+              />
+            </View>
+
+            {/* Notes */}
+            <View style={styles.fieldWrap}>
+              <Text style={styles.fieldLabel}>Notes</Text>
+              <TextInput
+                style={[styles.input, styles.textarea, focused === 'notes' && styles.inputFocused]}
+                placeholder="Any details worth remembering…"
+                placeholderTextColor={colors.fgDisabled}
+                value={form.notes}
+                onChangeText={v => setForm(f => ({ ...f, notes: v }))}
+                onFocus={() => setFocused('notes')}
+                onBlur={() => setFocused(null)}
+                multiline
+                numberOfLines={3}
+                textAlignVertical="top"
+                textContentType="none"
+                autoComplete="off"
+              />
+            </View>
+
+            {error && (
+              <View style={styles.errorBanner}>
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
+            )}
+
+            <Pressable
+              style={({ pressed }) => [
+                styles.cta,
+                (!canSave || saving) && styles.ctaDisabled,
+                pressed && canSave && !saving && styles.ctaPressed,
+              ]}
+              onPress={save}
+              disabled={!canSave || saving}
+            >
+              {saving ? (
+                <ActivityIndicator color={palette.cream100} />
+              ) : (
+                <Text style={styles.ctaLabel}>
+                  {isEdit ? 'Save changes' : 'Add to my gear'}
+                </Text>
+              )}
+            </Pressable>
+          </KeyboardAwareScrollView>
+        )}
+      </SheetLayout>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: { flex: 1, justifyContent: 'flex-end' },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(28,15,7,0.42)',
-  },
-  sheet: {
-    backgroundColor: palette.cream100,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    maxHeight: '92%',
-    shadowColor: palette.espresso800,
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.16,
-    shadowRadius: 32,
-    elevation: 12,
-  },
-  handle: {
-    width: 36,
-    height: 4,
-    borderRadius: 9999,
-    backgroundColor: palette.cream500,
-    alignSelf: 'center',
-    marginTop: 14,
-    marginBottom: 4,
-  },
-
-  typeContent: { paddingHorizontal: spacing[5], paddingBottom: 40 },
+  typeContent: { paddingHorizontal: spacing[5] },
   sheetTitle: {
     fontFamily: 'PlayfairDisplay_700Bold',
     fontSize: 24,
@@ -344,7 +307,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  formContent: { paddingHorizontal: spacing[5], paddingBottom: 40, gap: 14 },
+  formContent: { paddingHorizontal: spacing[5], gap: 14 },
   backLink: { marginBottom: 4 },
   backLinkText: {
     fontFamily: 'DMSans_700Bold',

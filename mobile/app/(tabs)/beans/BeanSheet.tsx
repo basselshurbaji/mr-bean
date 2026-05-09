@@ -8,10 +8,12 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { KeyboardAvoidingView, KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useEffect, useRef, useState } from 'react';
 import { colors, palette, radii, spacing } from '@/src/theme';
 import { beansApi, Bean, BeanBody, PROCESSES, ROAST_LEVELS } from '@/src/api/beans';
+import { SheetLayout } from '@/src/components/SheetLayout';
 
 interface Props {
   editBean?: Bean;
@@ -20,6 +22,7 @@ interface Props {
 }
 
 export default function BeanSheet({ editBean, onClose, onSaved }: Props) {
+  const insets = useSafeAreaInsets();
   const translateY      = useRef(new Animated.Value(700)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
 
@@ -86,239 +89,204 @@ export default function BeanSheet({ editBean, onClose, onSaved }: Props) {
 
   return (
     <Modal transparent animationType="none" onRequestClose={dismiss}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
-      <View style={styles.overlay}>
-        <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={dismiss} />
-        </Animated.View>
-
-        <Animated.View style={[styles.sheet, { transform: [{ translateY }] }]}>
-          <View style={styles.handle} />
-
-          <KeyboardAwareScrollView
-            contentContainerStyle={styles.formContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
-              {/* Header row */}
-              <View style={styles.sheetHeader}>
-                <Text style={styles.sheetTitle}>
-                  {isEdit ? 'Edit bean' : 'Add a bean'}
-                </Text>
-                <Pressable
-                  style={({ pressed }) => [styles.closeBtn, pressed && { opacity: 0.7 }]}
-                  onPress={dismiss}
-                >
-                  <Text style={styles.closeBtnIcon}>✕</Text>
-                </Pressable>
-              </View>
-
-              {/* Name */}
-              <View style={styles.fieldWrap}>
-                <Text style={styles.fieldLabel}>
-                  Name <Text style={styles.required}>*</Text>
-                </Text>
-                <TextInput
-                  ref={nameRef}
-                  style={[styles.input, focused === 'name' && styles.inputFocused]}
-                  placeholder="e.g. Ethiopia Yirgacheffe"
-                  placeholderTextColor={palette.cream600}
-                  value={form.name}
-                  onChangeText={v => setForm(f => ({ ...f, name: v }))}
-                  onFocus={() => setFocused('name')}
-                  onBlur={() => setFocused(null)}
-                  returnKeyType="next"
-                  onSubmitEditing={() => roasterRef.current?.focus()}
-                  textContentType="none"
-                  autoComplete="off"
-                />
-              </View>
-
-              {/* Roaster + Origin */}
-              <View style={styles.row}>
-                <View style={styles.rowCol}>
-                  <Text style={styles.fieldLabel}>Roaster</Text>
-                  <TextInput
-                    ref={roasterRef}
-                    style={[styles.input, focused === 'roaster' && styles.inputFocused]}
-                    placeholder="e.g. Onyx"
-                    placeholderTextColor={palette.cream600}
-                    value={form.roaster}
-                    onChangeText={v => setForm(f => ({ ...f, roaster: v }))}
-                    onFocus={() => setFocused('roaster')}
-                    onBlur={() => setFocused(null)}
-                    returnKeyType="next"
-                    onSubmitEditing={() => originRef.current?.focus()}
-                    textContentType="none"
-                    autoComplete="off"
-                  />
-                </View>
-                <View style={styles.rowCol}>
-                  <Text style={styles.fieldLabel}>Origin</Text>
-                  <TextInput
-                    ref={originRef}
-                    style={[styles.input, focused === 'origin' && styles.inputFocused]}
-                    placeholder="e.g. Ethiopia"
-                    placeholderTextColor={palette.cream600}
-                    value={form.origin}
-                    onChangeText={v => setForm(f => ({ ...f, origin: v }))}
-                    onFocus={() => setFocused('origin')}
-                    onBlur={() => setFocused(null)}
-                    returnKeyType="next"
-                    onSubmitEditing={() => tastingNotesRef.current?.focus()}
-                    textContentType="none"
-                    autoComplete="off"
-                  />
-                </View>
-              </View>
-
-              {/* Process chips */}
-              <View style={styles.fieldWrap}>
-                <Text style={styles.fieldLabel}>Process</Text>
-                <View style={styles.chips}>
-                  {PROCESSES.map(p => {
-                    const active = selectedProcess === p.id;
-                    return (
-                      <Pressable
-                        key={p.id}
-                        style={[styles.chip, active && styles.chipActive]}
-                        onPress={() => setSelectedProcess(active ? null : p.id)}
-                      >
-                        <Text style={[styles.chipLabel, active && styles.chipLabelActive]}>
-                          {p.label}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              </View>
-
-              {/* Roast level chips */}
-              <View style={styles.fieldWrap}>
-                <Text style={styles.fieldLabel}>Roast level</Text>
-                <View style={styles.chips}>
-                  {ROAST_LEVELS.map(r => {
-                    const active = selectedRoastLevel === r.id;
-                    return (
-                      <Pressable
-                        key={r.id}
-                        style={[styles.chip, active && styles.chipActive]}
-                        onPress={() => setSelectedRoastLevel(active ? null : r.id)}
-                      >
-                        <View style={[
-                          styles.roastDot,
-                          { backgroundColor: active ? palette.cream100 : r.color },
-                        ]} />
-                        <Text style={[styles.chipLabel, active && styles.chipLabelActive]}>
-                          {r.label}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              </View>
-
-              {/* Tasting notes */}
-              <View style={styles.fieldWrap}>
-                <Text style={styles.fieldLabel}>Tasting notes</Text>
-                <TextInput
-                  ref={tastingNotesRef}
-                  style={[styles.input, styles.textarea, focused === 'tasting' && styles.inputFocused]}
-                  placeholder="e.g. Jasmine, bergamot, peach."
-                  placeholderTextColor={palette.cream600}
-                  value={form.tastingNotes}
-                  onChangeText={v => setForm(f => ({ ...f, tastingNotes: v }))}
-                  onFocus={() => setFocused('tasting')}
-                  onBlur={() => setFocused(null)}
-                  multiline
-                  numberOfLines={2}
-                  textAlignVertical="top"
-                  returnKeyType="next"
-                  onSubmitEditing={() => notesRef.current?.focus()}
-                  textContentType="none"
-                  autoComplete="off"
-                />
-              </View>
-
-              {/* Notes */}
-              <View style={styles.fieldWrap}>
-                <Text style={styles.fieldLabel}>Notes</Text>
-                <TextInput
-                  ref={notesRef}
-                  style={[styles.input, styles.textarea, focused === 'notes' && styles.inputFocused]}
-                  placeholder="Your impressions, ratios, anything worth remembering."
-                  placeholderTextColor={palette.cream600}
-                  value={form.notes}
-                  onChangeText={v => setForm(f => ({ ...f, notes: v }))}
-                  onFocus={() => setFocused('notes')}
-                  onBlur={() => setFocused(null)}
-                  multiline
-                  numberOfLines={2}
-                  textAlignVertical="top"
-                  textContentType="none"
-                  autoComplete="off"
-                />
-              </View>
-
-              {error && (
-                <View style={styles.errorBanner}>
-                  <Text style={styles.errorText}>{error}</Text>
-                </View>
-              )}
-
+      <SheetLayout backdropOpacity={backdropOpacity} translateY={translateY} onClose={dismiss}>
+        <KeyboardAwareScrollView
+          contentContainerStyle={[styles.formContent, { paddingBottom: insets.bottom + 24 }]}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          bottomOffset={16}
+        >
+            {/* Header row */}
+            <View style={styles.sheetHeader}>
+              <Text style={styles.sheetTitle}>
+                {isEdit ? 'Edit bean' : 'Add a bean'}
+              </Text>
               <Pressable
-                style={({ pressed }) => [
-                  styles.cta,
-                  (!canSave || saving) && styles.ctaDisabled,
-                  pressed && canSave && !saving && styles.ctaPressed,
-                ]}
-                onPress={save}
-                disabled={!canSave || saving}
+                style={({ pressed }) => [styles.closeBtn, pressed && { opacity: 0.7 }]}
+                onPress={dismiss}
               >
-                {saving ? (
-                  <ActivityIndicator color={palette.cream100} />
-                ) : (
-                  <Text style={styles.ctaLabel}>
-                    {isEdit ? 'Save changes' : 'Add to your beans'}
-                  </Text>
-                )}
+                <Text style={styles.closeBtnIcon}>✕</Text>
               </Pressable>
-          </KeyboardAwareScrollView>
-        </Animated.View>
-      </View>
-      </KeyboardAvoidingView>
+            </View>
+
+            {/* Name */}
+            <View style={styles.fieldWrap}>
+              <Text style={styles.fieldLabel}>
+                Name <Text style={styles.required}>*</Text>
+              </Text>
+              <TextInput
+                ref={nameRef}
+                style={[styles.input, focused === 'name' && styles.inputFocused]}
+                placeholder="e.g. Ethiopia Yirgacheffe"
+                placeholderTextColor={palette.cream600}
+                value={form.name}
+                onChangeText={v => setForm(f => ({ ...f, name: v }))}
+                onFocus={() => setFocused('name')}
+                onBlur={() => setFocused(null)}
+                returnKeyType="next"
+                onSubmitEditing={() => roasterRef.current?.focus()}
+                textContentType="none"
+                autoComplete="off"
+              />
+            </View>
+
+            {/* Roaster + Origin */}
+            <View style={styles.row}>
+              <View style={styles.rowCol}>
+                <Text style={styles.fieldLabel}>Roaster</Text>
+                <TextInput
+                  ref={roasterRef}
+                  style={[styles.input, focused === 'roaster' && styles.inputFocused]}
+                  placeholder="e.g. Onyx"
+                  placeholderTextColor={palette.cream600}
+                  value={form.roaster}
+                  onChangeText={v => setForm(f => ({ ...f, roaster: v }))}
+                  onFocus={() => setFocused('roaster')}
+                  onBlur={() => setFocused(null)}
+                  returnKeyType="next"
+                  onSubmitEditing={() => originRef.current?.focus()}
+                  textContentType="none"
+                  autoComplete="off"
+                />
+              </View>
+              <View style={styles.rowCol}>
+                <Text style={styles.fieldLabel}>Origin</Text>
+                <TextInput
+                  ref={originRef}
+                  style={[styles.input, focused === 'origin' && styles.inputFocused]}
+                  placeholder="e.g. Ethiopia"
+                  placeholderTextColor={palette.cream600}
+                  value={form.origin}
+                  onChangeText={v => setForm(f => ({ ...f, origin: v }))}
+                  onFocus={() => setFocused('origin')}
+                  onBlur={() => setFocused(null)}
+                  returnKeyType="next"
+                  onSubmitEditing={() => tastingNotesRef.current?.focus()}
+                  textContentType="none"
+                  autoComplete="off"
+                />
+              </View>
+            </View>
+
+            {/* Process chips */}
+            <View style={styles.fieldWrap}>
+              <Text style={styles.fieldLabel}>Process</Text>
+              <View style={styles.chips}>
+                {PROCESSES.map(p => {
+                  const active = selectedProcess === p.id;
+                  return (
+                    <Pressable
+                      key={p.id}
+                      style={[styles.chip, active && styles.chipActive]}
+                      onPress={() => setSelectedProcess(active ? null : p.id)}
+                    >
+                      <Text style={[styles.chipLabel, active && styles.chipLabelActive]}>
+                        {p.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+
+            {/* Roast level chips */}
+            <View style={styles.fieldWrap}>
+              <Text style={styles.fieldLabel}>Roast level</Text>
+              <View style={styles.chips}>
+                {ROAST_LEVELS.map(r => {
+                  const active = selectedRoastLevel === r.id;
+                  return (
+                    <Pressable
+                      key={r.id}
+                      style={[styles.chip, active && styles.chipActive]}
+                      onPress={() => setSelectedRoastLevel(active ? null : r.id)}
+                    >
+                      <View style={[
+                        styles.roastDot,
+                        { backgroundColor: active ? palette.cream100 : r.color },
+                      ]} />
+                      <Text style={[styles.chipLabel, active && styles.chipLabelActive]}>
+                        {r.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+
+            {/* Tasting notes */}
+            <View style={styles.fieldWrap}>
+              <Text style={styles.fieldLabel}>Tasting notes</Text>
+              <TextInput
+                ref={tastingNotesRef}
+                style={[styles.input, styles.textarea, focused === 'tasting' && styles.inputFocused]}
+                placeholder="e.g. Jasmine, bergamot, peach."
+                placeholderTextColor={palette.cream600}
+                value={form.tastingNotes}
+                onChangeText={v => setForm(f => ({ ...f, tastingNotes: v }))}
+                onFocus={() => setFocused('tasting')}
+                onBlur={() => setFocused(null)}
+                multiline
+                numberOfLines={2}
+                textAlignVertical="top"
+                returnKeyType="next"
+                onSubmitEditing={() => notesRef.current?.focus()}
+                textContentType="none"
+                autoComplete="off"
+              />
+            </View>
+
+            {/* Notes */}
+            <View style={styles.fieldWrap}>
+              <Text style={styles.fieldLabel}>Notes</Text>
+              <TextInput
+                ref={notesRef}
+                style={[styles.input, styles.textarea, focused === 'notes' && styles.inputFocused]}
+                placeholder="Your impressions, ratios, anything worth remembering."
+                placeholderTextColor={palette.cream600}
+                value={form.notes}
+                onChangeText={v => setForm(f => ({ ...f, notes: v }))}
+                onFocus={() => setFocused('notes')}
+                onBlur={() => setFocused(null)}
+                multiline
+                numberOfLines={2}
+                textAlignVertical="top"
+                textContentType="none"
+                autoComplete="off"
+              />
+            </View>
+
+            {error && (
+              <View style={styles.errorBanner}>
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
+            )}
+
+            <Pressable
+              style={({ pressed }) => [
+                styles.cta,
+                (!canSave || saving) && styles.ctaDisabled,
+                pressed && canSave && !saving && styles.ctaPressed,
+              ]}
+              onPress={save}
+              disabled={!canSave || saving}
+            >
+              {saving ? (
+                <ActivityIndicator color={palette.cream100} />
+              ) : (
+                <Text style={styles.ctaLabel}>
+                  {isEdit ? 'Save changes' : 'Add to your beans'}
+                </Text>
+              )}
+            </Pressable>
+        </KeyboardAwareScrollView>
+      </SheetLayout>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay:  { flex: 1, justifyContent: 'flex-end' },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(28,15,7,0.42)',
-  },
-  sheet: {
-    backgroundColor: palette.cream100,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    maxHeight: '92%',
-    shadowColor: palette.espresso800,
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.16,
-    shadowRadius: 32,
-    elevation: 12,
-  },
-  handle: {
-    width: 36,
-    height: 4,
-    borderRadius: radii.full,
-    backgroundColor: palette.cream500,
-    alignSelf: 'center',
-    marginTop: 14,
-    marginBottom: 4,
-  },
-
-  formContent: { paddingHorizontal: spacing[5], paddingBottom: 40, gap: 16 },
+  formContent: { paddingHorizontal: spacing[5], gap: 16 },
 
   sheetHeader: {
     flexDirection: 'row',

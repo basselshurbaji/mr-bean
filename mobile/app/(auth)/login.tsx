@@ -9,6 +9,7 @@ import {
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRef, useState } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/src/context/AuthContext';
 import Svg, { Defs, RadialGradient, Stop, Path } from 'react-native-svg';
 import { colors, spacing, radii } from '@/src/theme';
@@ -62,6 +63,7 @@ function BeanMark({ size = 48 }: { size?: number }) {
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function LoginScreen() {
+  const insets = useSafeAreaInsets();
   const { setIsAuthenticated } = useAuth();
   const [mode, setMode] = useState<Mode>('login');
   const [form, setForm] = useState<Form>({ firstName: '', lastName: '', email: '', password: '', confirm: '' });
@@ -137,11 +139,12 @@ export default function LoginScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.screen} edges={['top']}>
       <KeyboardAwareScrollView
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + spacing[6] }]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
+        bottomOffset={16}
       >
         {/* Brand hero */}
         <View style={styles.hero}>
@@ -289,7 +292,6 @@ export default function LoginScreen() {
           )}
         </View>
 
-        <View style={styles.bottomPad} />
       </KeyboardAwareScrollView>
     </SafeAreaView>
   );
@@ -451,7 +453,4 @@ const styles = StyleSheet.create({
     color: colors.fgAccent,
   },
 
-  bottomPad: {
-    height: spacing[12],
-  },
 });
