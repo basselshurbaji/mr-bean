@@ -4,10 +4,7 @@ typecheck:
 	@npx tsc --noEmit
 
 build:
-	@npx expo export --platform web
-
-clean:
-	@rm -rf dist .expo
+	@npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output /tmp/mrbean-bundle.js --reset-cache
 
 local-ip:
 	@IP=$$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null) && \
