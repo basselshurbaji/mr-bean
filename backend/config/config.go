@@ -50,7 +50,7 @@ func Load() Config {
 		},
 		Auth: AuthConfig{
 			JWTSecret:     secret,
-			JWTExpiry:     getMinutes("JWT_EXPIRY", 1),
+			JWTExpiry:     getMinutes("JWT_EXPIRY", 1440),
 			RefreshExpiry: getMinutes("REFRESH_EXPIRY", 1440),
 		},
 	}
