@@ -1,6 +1,6 @@
 # Mr. Bean
 
-![CI](https://github.com/basselshurbaji/mr_bean/actions/workflows/go.yml/badge.svg)
+[![build](https://github.com/basselshurbaji/mr-bean/actions/workflows/go.yml/badge.svg)](https://github.com/basselshurbaji/mr-bean/actions/workflows/go.yml)
 
 Personal espresso journal with an MCP server. Claude gets direct read/write access to your shots, beans, and gear — log a pull, check trends, or update your setup without leaving the chat.
 
