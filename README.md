@@ -150,9 +150,6 @@ Restart Claude Desktop. The mr-bean tools appear in the tool picker.
 ```text
 mr_bean/
 ├── backend/    # Go API server
-├── mcp/        # MCP server — the current focus
-├── mobile/     # React Native app (Expo) — on hold, not the primary interface
-├── design/     # Design tokens, mockups, and handoff specs
-├── product/    # Product notes and planning
-└── review/     # Code review artifacts
+├── mcp/        # MCP server
+└── product/    # Product notes and planning
 ```

@@ -26,9 +26,8 @@ mr_bean/
 │       ├── health/         # health check endpoint
 │       ├── user/           # user repo, service, and /user/me /user/update /user/change-password handlers
 │       ├── gear/           # gear + station repo, service, and CRUD handlers
-│       ├── bean/           # bean repo, service, and CRUD handlers
-│       └── mailer/         # Mailer interface + SMTP implementation
-└── frontend/               # TBD
+│       └── bean/           # bean repo, service, and CRUD handlers
+└── mcp/                    # MCP server
 ```
 
 `internal/` follows standard Go convention — nothing inside is importable from outside this module.

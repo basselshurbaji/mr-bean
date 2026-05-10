@@ -1,6 +1,6 @@
 # Product — Feature Requirements
 
-This directory is the source of truth for **what we are building and why**. It is the contract between product, backend, and design.
+This directory is the source of truth for **what we are building and why**. It is the contract between product and backend.
 
 ---
 
@@ -14,19 +14,15 @@ This directory is the source of truth for **what we are building and why**. It i
 
 ## What does NOT belong here
 
-- UI layout, visual design, or component specs → those live in `design/`
-- Code, queries, or implementation details → those live in `backend/` or `mobile/`
-- Opinions on how things should look → that is the designer's job
+- Code, queries, or implementation details → those live in `backend/` or `mcp/`
 
 ---
 
 ## Who reads this
 
-| Audience  | Uses it for                                                         |
-|-----------|---------------------------------------------------------------------|
-| Backend   | Defining models, migrations, API routes, and validation logic       |
-| Design    | Understanding what screens are needed and what actions exist        |
-| Frontend  | Understanding data shapes and what the API can and cannot do        |
+| Audience | Uses it for                                                   |
+| -------- | ------------------------------------------------------------- |
+| Backend  | Defining models, migrations, API routes, and validation logic |
 
 ---
 
@@ -72,6 +68,5 @@ A table mapping scenarios to HTTP status codes.
 ## Tone and precision
 
 - Be specific enough that a backend engineer can write the migration and handlers without asking follow-up questions.
-- Be specific enough that a designer knows what screens and states exist (empty, loading, error, success).
 - Do not over-specify implementation. Say *what* must happen, not *how* to implement it.
 - Use plain language. Avoid vague words like "handle", "manage", or "support" — say exactly what should happen.
