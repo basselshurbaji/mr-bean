@@ -1,4 +1,4 @@
-name: mr-bean
+name: mr_bean
 
 services:
   postgres:

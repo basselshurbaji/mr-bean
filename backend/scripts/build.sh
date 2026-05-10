@@ -8,6 +8,9 @@ cd "$(dirname "$0")/.."
 echo "→ Generating sqlc..."
 SQLC="$(go env GOPATH)/bin/sqlc"
 if [ ! -f "$SQLC" ]; then
+    SQLC="$(command -v sqlc || true)"
+fi
+if [ -z "$SQLC" ]; then
     echo "sqlc not found. Run: go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest"
     exit 1
 fi
@@ -16,6 +19,9 @@ fi
 echo "→ Running linter..."
 GOLANGCI_LINT="$(go env GOPATH)/bin/golangci-lint"
 if [ ! -f "$GOLANGCI_LINT" ]; then
+    GOLANGCI_LINT="$(command -v golangci-lint || true)"
+fi
+if [ -z "$GOLANGCI_LINT" ]; then
     echo "golangci-lint not found. Install: https://golangci-lint.run/usage/install/"
     exit 1
 fi
