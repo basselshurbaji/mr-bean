@@ -60,45 +60,56 @@ All tools operate on behalf of the authenticated user identified by the app toke
 
 ## Stack
 
-| Layer   | Technology                                     |
-| ------- | ---------------------------------------------- |
-| Backend | Go (chi router, JWT auth, PostgreSQL via sqlc) |
-| MCP     | Go - official MCP go-sdk, stdio transport      |
+| Layer   | Technology                                                        |
+| ------- | ----------------------------------------------------------------- |
+| Backend | Go (chi router, JWT auth, PostgreSQL via sqlc)                    |
+| MCP     | Go — official MCP go-sdk, stdio (Claude Desktop) + HTTP (Docker) |
 
 ---
 
 ## Setup
 
-### 1. Start the backend
+Everything runs in Docker. The only prerequisite is Docker with Compose.
+
+### 1. Clone and start
 
 ```bash
-cd backend
-docker compose up
+git clone https://github.com/basselshurbaji/mr_bean
+cd mr_bean
+cp .env.example .env
+make up
 ```
 
-See `backend/README.md` for full instructions.
+`make up` builds all images, runs database migrations, and starts PostgreSQL and the backend. The MCP server will show as **Exited** until you complete step 3 — that's expected.
 
-### 2. Get an app token
-
-With the backend running, create a long-lived app token:
+### 2. Create an account
 
 ```bash
-curl -X POST http://localhost:8080/app-tokens \
-  -H "Authorization: Bearer <your-jwt>" \
+curl -s -X POST http://localhost:7489/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"name": "claude"}'
+  -d '{"email":"you@example.com","password":"secret"}'
 ```
 
-Copy the returned token.
+Save the `access_token` from the response.
 
-### 3. Build the MCP binary
+### 3. Create an app token
 
 ```bash
-cd mcp
-go build -o mr-bean-mcp .
+curl -s -X POST http://localhost:7489/app-tokens \
+  -H "Authorization: Bearer <access_token>" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"claude"}'
 ```
 
-### 4. Add to Claude Desktop
+Copy the returned token value, add it to `.env`:
+
+```
+TOKEN=<your_app_token>
+```
+
+Run `make up` again. The MCP server will start and stay running.
+
+### 4. Connect Claude Desktop
 
 Open `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) and add:
 
@@ -106,19 +117,31 @@ Open `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) a
 {
   "mcpServers": {
     "mr-bean": {
-      "command": "/absolute/path/to/mcp/mr-bean-mcp",
-      "env": {
-        "TOKEN": "your_app_token",
-        "MR_BEAN_SERVER_URL": "http://localhost:8080"
-      }
+      "command": "docker",
+      "args": [
+        "run", "--rm", "-i",
+        "-e", "TOKEN=<your_app_token>",
+        "-e", "MR_BEAN_SERVER_URL=http://host.docker.internal:7489",
+        "mr-bean-mcp:latest"
+      ]
     }
   }
 }
 ```
 
-Restart Claude Desktop. The mr-bean tools will appear in the tool picker.
+Restart Claude Desktop. The mr-bean tools appear in the tool picker.
 
-See `mcp/README.md` for Docker setup and additional configuration options.
+> Claude Desktop spawns the container on-demand via stdio. The long-running MCP container (`make up`) serves HTTP on port 8934 and is useful for testing with other clients.
+
+### Makefile reference
+
+| Command      | Effect                                     |
+| ------------ | ------------------------------------------ |
+| `make up`    | Build images, start services, show status  |
+| `make down`  | Stop and remove containers                 |
+| `make logs`  | Stream logs from all services              |
+| `make ps`    | Show current service status                |
+| `make build` | Rebuild images without starting            |
 
 ---
 

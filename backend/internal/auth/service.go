@@ -3,11 +3,9 @@ package auth
 import (
 	"context"
 	"errors"
-	"log"
 
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/basselshurbaji/mr_bean/backend/internal/mailer"
 	"github.com/basselshurbaji/mr_bean/backend/internal/user"
 )
 
@@ -20,11 +18,10 @@ type AuthService interface {
 type authService struct {
 	users  user.UserRepo
 	tokens TokenService
-	mailer mailer.Mailer
 }
 
-func NewAuthService(users user.UserRepo, tokens TokenService, mailer mailer.Mailer) AuthService {
-	return &authService{users: users, tokens: tokens, mailer: mailer}
+func NewAuthService(users user.UserRepo, tokens TokenService) AuthService {
+	return &authService{users: users, tokens: tokens}
 }
 
 // Login implements AuthService.
@@ -96,20 +93,6 @@ func (s *authService) Register(ctx context.Context, firstName, lastName, email, 
 	if err != nil {
 		return "", "", err
 	}
-
-	go func() {
-		type WelcomeData struct {
-			FirstName string
-		}
-		if err := s.mailer.Send(context.Background(), mailer.Email{
-			To:       email,
-			Subject:  "Welcome to Mr. Bean",
-			Template: "welcome.html",
-			Data:     WelcomeData{FirstName: firstName},
-		}); err != nil {
-			log.Printf("send welcome email to %s: %v", email, err)
-		}
-	}()
 
 	return accessToken, refreshToken, nil
 }

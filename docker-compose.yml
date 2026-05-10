@@ -1,17 +1,54 @@
+name: mr-bean
+
 services:
   postgres:
     image: postgres:16-alpine
-    env_file:
-      - path: ./backend/.env
-        required: false
     environment:
       POSTGRES_USER:     ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
       POSTGRES_DB:       ${DB_NAME:-mr_bean}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5487}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-mr_bean}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    image: mr-bean-backend:latest
+    environment:
+      PORT:           ${PORT:-7489}
+      DB_HOST:        postgres
+      DB_PORT:        5432
+      DB_USER:        ${DB_USER:-postgres}
+      DB_PASSWORD:    ${DB_PASSWORD:-postgres}
+      DB_NAME:        ${DB_NAME:-mr_bean}
+      DB_SSLMODE:     disable
+      JWT_SECRET:     ${JWT_SECRET:-change_me_in_production}
+      JWT_EXPIRY:     ${JWT_EXPIRY:-60}
+      REFRESH_EXPIRY: ${REFRESH_EXPIRY:-1440}
+    ports:
+      - "${PORT:-7489}:${PORT:-7489}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  mcp:
+    build: ./mcp
+    image: mr-bean-mcp:latest
+    environment:
+      TOKEN:              ${TOKEN:-}
+      MR_BEAN_SERVER_URL: http://backend:${PORT:-7489}
+      PORT:               ${MCP_PORT:-8934}
+      MCP_TRANSPORT:      http
+    ports:
+      - "${MCP_PORT:-8934}:${MCP_PORT:-8934}"
+    depends_on:
+      - backend
 
 volumes:
   postgres_data:

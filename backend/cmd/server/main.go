@@ -15,7 +15,6 @@ import (
 	"github.com/basselshurbaji/mr_bean/backend/internal/extraction"
 	"github.com/basselshurbaji/mr_bean/backend/internal/gear"
 	"github.com/basselshurbaji/mr_bean/backend/internal/health"
-	"github.com/basselshurbaji/mr_bean/backend/internal/mailer"
 	"github.com/basselshurbaji/mr_bean/backend/internal/middleware"
 	"github.com/basselshurbaji/mr_bean/backend/internal/router"
 	"github.com/basselshurbaji/mr_bean/backend/internal/user"
@@ -46,8 +45,7 @@ func main() {
 	extractionRepo := extraction.NewPgExtractionRepo(db)
 	appTokenRepo   := auth.NewPgAppTokenRepo(db)
 	tokenSvc := auth.NewTokenService(cfg.Auth.JWTSecret, cfg.Auth.JWTExpiry, cfg.Auth.RefreshExpiry)
-	mailerSvc := mailer.NewSMTPMailer(cfg.Mailer.Host, cfg.Mailer.Port, cfg.Mailer.Username, cfg.Mailer.Password, cfg.Mailer.From)
-	authSvc      := auth.NewAuthService(userRepo, tokenSvc, mailerSvc)
+	authSvc      := auth.NewAuthService(userRepo, tokenSvc)
 	appTokenSvc  := auth.NewAppTokenService(appTokenRepo, tokenSvc)
 	userSvc      := user.NewUserService(userRepo)
 	gearSvc      := gear.NewGearService(gearRepo)
