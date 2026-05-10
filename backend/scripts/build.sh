@@ -14,11 +14,12 @@ fi
 "$SQLC" generate
 
 echo "→ Running linter..."
-if ! command -v golangci-lint &>/dev/null; then
+GOLANGCI_LINT="$(go env GOPATH)/bin/golangci-lint"
+if [ ! -f "$GOLANGCI_LINT" ]; then
     echo "golangci-lint not found. Install: https://golangci-lint.run/usage/install/"
     exit 1
 fi
-golangci-lint run ./...
+"$GOLANGCI_LINT" run ./...
 
 echo "→ Running go build..."
 go build -o bin/server ./cmd/server
