@@ -1,58 +1,56 @@
 # Mr. Bean
 
-**Mr. Bean** is a coffee tracking system with an MCP server at its core — giving Claude (and other LLMs) direct access to your espresso data. Log shots, manage beans, and get dial-in advice just by talking.
+Personal espresso journal with an MCP server. Claude gets direct read/write access to your shots, beans, and gear — log a pull, check trends, or update your setup without leaving the chat.
 
-No UI required. Just Claude and your data.
+Backend is a Go REST API (chi, sqlc, PostgreSQL). The MCP server speaks stdio to Claude Desktop.
 
 ---
 
 ## What you can do
 
-The MCP server exposes your full brew journal to Claude. Once connected, you talk — Claude acts.
+Connect the MCP server and Claude has your full brew history. Some things worth knowing:
 
-### Log shots mid-session
+### Log a shot mid-session
 
-> *"Just pulled 18g in, 38g out in 26 seconds on the Hoffman blend. A little fast — grind 11."*
+> "18g in, 36.5g out, 27 seconds. A bit fast — bump the grind to 12."
 
-Claude logs the extraction, notes the grind size, and has the context ready for follow-up.
+Claude logs the extraction and notes the grind adjustment. Each shot stores dose, yield, time, your target time, and grind size — zone classification (under / perfect / over) is derived from how far off your actual time was from target.
 
-### Dial in a new bean
+### Get a starting point on a new bean
 
-> *"I'm starting on a washed Ethiopian from Onyx. Light roast. What should I try first?"*
+> "Starting on a washed Ethiopian from Onyx. Light roast. Where should I begin?"
 
-Claude looks at your extraction history, sees how you've done with similar profiles, and gives you a starting point — not a generic recipe from the internet.
+Claude checks your history for extractions on similar profiles (same process, roast level) and gives you a starting point based on what's actually worked — not a generic internet recipe.
 
-### Audit your history
+### Review a session
 
-> *"How have my last 10 shots on the Linea Micra compared to the Decent?"*
+> "How have my last 10 shots on the Linea Micra compared to the Decent?"
 
-Claude pulls your extractions, filters by gear, and breaks down the patterns: ratio trends, time variance, where you keep drifting.
+Claude filters by gear, pulls the numbers, and breaks down ratio trends and time variance.
 
-### Manage your setup
+### Update your setup
 
-> *"Add a Niche Zero to my gear list and put it in the home station."*
+> "Add a Niche Zero to my gear list. Put it in the home station."
 
-Done. No forms, no tapping through menus.
+Gear items live independently of stations — stations are just ordered pre-selection groups for logging. Deleting a station doesn't touch your shot history.
 
-### Keep your bean library current
+### Keep your bean catalogue current
 
-> *"I just finished the Onyx bag. Archive it and add a new one — natural Yemeni from Yemen Mocha, medium roast."*
-
-Claude updates both in one turn.
+> "Just finished the Onyx bag. Add a new one — natural Yemeni from Qima, medium roast."
 
 ---
 
 ## Tools
 
-21 tools across five domains:
+20 tools across five domains:
 
-| Domain      | Tools                                                                                                |
-| ----------- | ---------------------------------------------------------------------------------------------------- |
-| Beans       | `list_beans`, `create_bean`, `update_bean`, `delete_bean`                                            |
-| Gear        | `list_gear`, `create_gear`, `get_gear`, `update_gear`, `delete_gear`                                 |
-| Stations    | `list_stations`, `create_station`, `update_station`, `delete_station`                                |
-| Extractions | `list_extractions`, `create_extraction`, `get_extraction`, `update_extraction`, `delete_extraction`  |
-| User        | `get_me`, `update_me`                                                                                |
+| Domain      | Tools                                                                                               |
+|-------------|-----------------------------------------------------------------------------------------------------|
+| Beans       | `list_beans`, `create_bean`, `update_bean`, `delete_bean`                                           |
+| Gear        | `list_gear`, `create_gear`, `get_gear`, `update_gear`, `delete_gear`                                |
+| Stations    | `list_stations`, `create_station`, `update_station`, `delete_station`                               |
+| Extractions | `list_extractions`, `create_extraction`, `get_extraction`, `update_extraction`, `delete_extraction` |
+| User        | `get_me`, `update_me`                                                                               |
 
 All tools operate on behalf of the authenticated user identified by the app token.
 
@@ -60,9 +58,9 @@ All tools operate on behalf of the authenticated user identified by the app toke
 
 ## Stack
 
-| Layer   | Technology                                                        |
-| ------- | ----------------------------------------------------------------- |
-| Backend | Go (chi router, JWT auth, PostgreSQL via sqlc)                    |
+| Layer   | Technology                                                       |
+|---------|------------------------------------------------------------------|
+| Backend | Go (chi router, JWT auth, PostgreSQL via sqlc)                   |
 | MCP     | Go — official MCP go-sdk, stdio (Claude Desktop) + HTTP (Docker) |
 
 ---
@@ -129,13 +127,13 @@ Restart Claude Desktop. The mr-bean tools appear in the tool picker.
 
 ### Makefile reference
 
-| Command      | Effect                                     |
-| ------------ | ------------------------------------------ |
-| `make up`    | Build images, start services, show status  |
-| `make down`  | Stop and remove containers                 |
-| `make logs`  | Stream logs from all services              |
-| `make ps`    | Show current service status                |
-| `make build` | Rebuild images without starting            |
+| Command      | Effect                                    |
+|--------------|-------------------------------------------|
+| `make up`    | Build images, start services, show status |
+| `make down`  | Stop and remove containers                |
+| `make logs`  | Stream logs from all services             |
+| `make ps`    | Show current service status               |
+| `make build` | Rebuild images without starting           |
 
 ---
 
