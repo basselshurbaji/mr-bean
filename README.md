@@ -80,60 +80,49 @@ make up
 
 `make up` builds all images (including `mr-bean-mcp:latest`), runs database migrations, and starts PostgreSQL and the backend.
 
-### 2. Create an account
+### 2. Connect Claude
 
 ```bash
-curl -s -X POST http://localhost:7489/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"email":"you@example.com","password":"secret"}'
+make setup
 ```
 
-Save the `access_token` from the response.
+Asks whether you have an account, walks you through login or registration, creates an app token, and prints the config block to paste into Claude. One command, done.
 
-### 3. Create an app token
+### 3. Add the config to Claude
 
-```bash
-curl -s -X POST http://localhost:7489/app-tokens \
-  -H "Authorization: Bearer <access_token>" \
-  -H "Content-Type: application/json" \
-  -d '{"name":"claude"}'
-```
+Paste the block printed by `make setup` into the appropriate file:
 
-Copy the returned token value.
-
-### 4. Connect Claude Desktop
-
-Open `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) and add:
-
-```json
-{
-  "mcpServers": {
-    "mr-bean": {
-      "command": "docker",
-      "args": [
-        "run", "--rm", "-i",
-        "-e", "TOKEN=<your_app_token>",
-        "-e", "MR_BEAN_SERVER_URL=http://host.docker.internal:7489",
-        "mr-bean-mcp:latest"
-      ]
-    }
-  }
-}
-```
+- **Claude Desktop** — `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Claude Code** — `~/.claude.json` (under `mcpServers`)
 
 Restart Claude Desktop. The mr-bean tools appear in the tool picker.
 
 > Claude Desktop spawns the container on-demand via stdio. The `mr-bean-mcp:latest` image is built by `make up` but not run as a service — Claude Desktop manages its lifecycle.
 
+### Step by step
+
+If you prefer to run each step manually:
+
+```bash
+make account    # register a new account
+make login      # or log in to an existing one
+make app-token  # create an app token and print the config
+```
+
 ### Makefile reference
 
-| Command      | Effect                                    |
-|--------------|-------------------------------------------|
-| `make up`    | Build images, start services, show status |
-| `make down`  | Stop and remove containers                |
-| `make logs`  | Stream logs from all services             |
-| `make ps`    | Show current service status               |
-| `make build` | Rebuild images without starting           |
+| Command                                                              | Effect                                              |
+|----------------------------------------------------------------------|-----------------------------------------------------|
+| `make up`                                                            | Build images, start services, show status           |
+| `make down`                                                          | Stop and remove containers                          |
+| `make logs`                                                          | Stream logs from all services                       |
+| `make ps`                                                            | Show current service status                         |
+| `make build`                                                         | Rebuild images without starting                     |
+| `make health`                                                        | Verify the backend is up                            |
+| `make setup`                                                         | Register or log in, create app token, print config  |
+| `make account`                                                       | Register a new account                              |
+| `make login`                                                         | Log in to an existing account                       |
+| `make app-token`                                                     | Create an app token and print the Claude config     |
 
 ---
 
