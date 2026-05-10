@@ -2,6 +2,7 @@
 
 up:
 	@docker compose up --build -d
+	@docker build -q -t mr-bean-mcp:latest ./mcp
 	@echo ""
 	@docker compose ps
 	@echo ""
@@ -10,7 +11,7 @@ up:
 	@echo "================================================================"
 	@echo ""
 	@echo " Backend API:  http://localhost:7489"
-	@echo " MCP server:   http://localhost:8934  (starts once TOKEN is set)"
+	@echo " MCP image:    mr-bean-mcp:latest  (built, ready for Claude Desktop)"
 	@echo ""
 	@echo " ---- First time? Set up your account: -------------------------"
 	@echo ""
@@ -25,10 +26,6 @@ up:
 	@echo "      -H 'Content-Type: application/json' \\"
 	@echo "      -d '{\"name\":\"claude\"}'"
 	@echo ""
-	@echo " 3. Copy the returned token, add it to .env:"
-	@echo "    TOKEN=<your_app_token>"
-	@echo "    Then run 'make up' again to start the MCP server."
-	@echo ""
 	@echo " ---- Connect Claude Desktop: -----------------------------------"
 	@echo ""
 	@echo " Add to ~/Library/Application Support/Claude/claude_desktop_config.json:"
@@ -40,7 +37,7 @@ up:
 	@echo "         \"args\": ["
 	@echo "           \"run\", \"--rm\", \"-i\","
 	@echo "           \"-e\", \"TOKEN=<your_app_token>\","
-	@echo "           \"-e\", \"MR_BEAN_SERVER_URL=http://host.docker.internal:8080\","
+	@echo "           \"-e\", \"MR_BEAN_SERVER_URL=http://host.docker.internal:7489\","
 	@echo "           \"mr-bean-mcp:latest\""
 	@echo "         ]"
 	@echo "       }"
@@ -55,6 +52,7 @@ down:
 
 build:
 	docker compose build
+	docker build -q -t mr-bean-mcp:latest ./mcp
 
 logs:
 	docker compose logs -f

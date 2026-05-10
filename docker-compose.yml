@@ -37,18 +37,5 @@ services:
       postgres:
         condition: service_healthy
 
-  mcp:
-    build: ./mcp
-    image: mr-bean-mcp:latest
-    environment:
-      TOKEN:              ${TOKEN:-}
-      MR_BEAN_SERVER_URL: http://backend:${PORT:-7489}
-      PORT:               ${MCP_PORT:-8934}
-      MCP_TRANSPORT:      http
-    ports:
-      - "${MCP_PORT:-8934}:${MCP_PORT:-8934}"
-    depends_on:
-      - backend
-
 volumes:
   postgres_data:

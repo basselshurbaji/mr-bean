@@ -80,7 +80,7 @@ cp .env.example .env
 make up
 ```
 
-`make up` builds all images, runs database migrations, and starts PostgreSQL and the backend. The MCP server will show as **Exited** until you complete step 3 — that's expected.
+`make up` builds all images (including `mr-bean-mcp:latest`), runs database migrations, and starts PostgreSQL and the backend.
 
 ### 2. Create an account
 
@@ -101,13 +101,7 @@ curl -s -X POST http://localhost:7489/app-tokens \
   -d '{"name":"claude"}'
 ```
 
-Copy the returned token value, add it to `.env`:
-
-```
-TOKEN=<your_app_token>
-```
-
-Run `make up` again. The MCP server will start and stay running.
+Copy the returned token value.
 
 ### 4. Connect Claude Desktop
 
@@ -131,7 +125,7 @@ Open `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) a
 
 Restart Claude Desktop. The mr-bean tools appear in the tool picker.
 
-> Claude Desktop spawns the container on-demand via stdio. The long-running MCP container (`make up`) serves HTTP on port 8934 and is useful for testing with other clients.
+> Claude Desktop spawns the container on-demand via stdio. The `mr-bean-mcp:latest` image is built by `make up` but not run as a service — Claude Desktop manages its lifecycle.
 
 ### Makefile reference
 
