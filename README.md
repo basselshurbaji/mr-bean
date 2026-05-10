@@ -1,61 +1,135 @@
 # Mr. Bean
 
-**Mr. Bean** is a mobile app for coffee enthusiasts — from the "just got an espresso machine" beginner to the obsessive who weighs their beans to the tenth of a gram. Log extractions, dial in recipes, manage your gear, and get AI-powered predictions for new beans based on your history.
+**Mr. Bean** is a coffee tracking system with an MCP server at its core — giving Claude (and other LLMs) direct access to your espresso data. Log shots, manage beans, and get dial-in advice just by talking.
 
-Think of it as a "brew journal + shot whisperer" — equal parts notebook, calculator, and trusted coffee nerd friend.
-
----
-
-## What it does
-
-| Feature            | Description                                                                                                                               |
-|--------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
-| **Extraction log** | Record espresso shots and pour-overs: dose, yield, time, TDS, notes, and rating                                                           |
-| **Shot dialing**   | Troubleshoot and iterate on recipes; track changes across pulls                                                                           |
-| **Bean library**   | Catalog your beans with origin, roast, and tasting notes                                                                                  |
-| **My Gear**        | Register hardware (machines, grinders, scales, baskets, etc.) and group them into named Stations that pre-select gear when logging a shot |
-| **AI predictions** | Get dial-in suggestions for new beans based on your extraction history                                                                    |
-| **Profile**        | Edit name and password; avatar auto-generated from initials                                                                               |
+No UI required. Just Claude and your data.
 
 ---
 
-## Screens designed so far
+## What you can do
 
-| Screen               | Status          | Notes                                                        |
-|----------------------|-----------------|--------------------------------------------------------------|
-| Login / Register     | High-fidelity   | Two-mode (sign in / create account) on one screen; JWT auth  |
-| My Gear              | High-fidelity   | Gear list + detail + add/edit sheet; Stations tab            |
-| Profile              | High-fidelity   | Edit name, change password, log out                          |
-| Home                 | Planned         | Extraction feed                                              |
-| Beans                | Planned         | Bean library                                                 |
+The MCP server exposes your full brew journal to Claude. Once connected, you talk — Claude acts.
+
+### Log shots mid-session
+
+> *"Just pulled 18g in, 38g out in 26 seconds on the Hoffman blend. A little fast — grind 11."*
+
+Claude logs the extraction, notes the grind size, and has the context ready for follow-up.
+
+### Dial in a new bean
+
+> *"I'm starting on a washed Ethiopian from Onyx. Light roast. What should I try first?"*
+
+Claude looks at your extraction history, sees how you've done with similar profiles, and gives you a starting point — not a generic recipe from the internet.
+
+### Audit your history
+
+> *"How have my last 10 shots on the Linea Micra compared to the Decent?"*
+
+Claude pulls your extractions, filters by gear, and breaks down the patterns: ratio trends, time variance, where you keep drifting.
+
+### Manage your setup
+
+> *"Add a Niche Zero to my gear list and put it in the home station."*
+
+Done. No forms, no tapping through menus.
+
+### Keep your bean library current
+
+> *"I just finished the Onyx bag. Archive it and add a new one — natural Yemeni from Yemen Mocha, medium roast."*
+
+Claude updates both in one turn.
+
+---
+
+## Tools
+
+21 tools across five domains:
+
+| Domain      | Tools                                                                                                |
+| ----------- | ---------------------------------------------------------------------------------------------------- |
+| Beans       | `list_beans`, `create_bean`, `update_bean`, `delete_bean`                                            |
+| Gear        | `list_gear`, `create_gear`, `get_gear`, `update_gear`, `delete_gear`                                 |
+| Stations    | `list_stations`, `create_station`, `update_station`, `delete_station`                                |
+| Extractions | `list_extractions`, `create_extraction`, `get_extraction`, `update_extraction`, `delete_extraction`  |
+| User        | `get_me`, `update_me`                                                                                |
+
+All tools operate on behalf of the authenticated user identified by the app token.
 
 ---
 
 ## Stack
 
-| Layer     | Technology                                        |
-|-----------|---------------------------------------------------|
-| Mobile    | React Native / Expo (Expo Router, file-based nav) |
-| Backend   | Go (chi router, JWT auth, PostgreSQL via sqlc)    |
-| AI        | Planned                                           |
+| Layer   | Technology                                     |
+| ------- | ---------------------------------------------- |
+| Backend | Go (chi router, JWT auth, PostgreSQL via sqlc) |
+| MCP     | Go - official MCP go-sdk, stdio transport      |
 
 ---
 
-## Design system
+## Setup
 
-Warm, earthy palette rooted in actual coffee colours — near-black espresso (`#1C0F07`) through caramel (`#C4782A`) to pale cream (`#FDF8F2`). Typography: **Playfair Display** for headings, **DM Sans** for body/UI, **JetBrains Mono** for measurements and data. Design files live in `frontend/design/`.
+### 1. Start the backend
+
+```bash
+cd backend
+docker compose up
+```
+
+See `backend/README.md` for full instructions.
+
+### 2. Get an app token
+
+With the backend running, create a long-lived app token:
+
+```bash
+curl -X POST http://localhost:8080/app-tokens \
+  -H "Authorization: Bearer <your-jwt>" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "claude"}'
+```
+
+Copy the returned token.
+
+### 3. Build the MCP binary
+
+```bash
+cd mcp
+go build -o mr-bean-mcp .
+```
+
+### 4. Add to Claude Desktop
+
+Open `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) and add:
+
+```json
+{
+  "mcpServers": {
+    "mr-bean": {
+      "command": "/absolute/path/to/mcp/mr-bean-mcp",
+      "env": {
+        "TOKEN": "your_app_token",
+        "MR_BEAN_SERVER_URL": "http://localhost:8080"
+      }
+    }
+  }
+}
+```
+
+Restart Claude Desktop. The mr-bean tools will appear in the tool picker.
+
+See `mcp/README.md` for Docker setup and additional configuration options.
 
 ---
 
 ## Repo layout
 
-```
+```text
 mr_bean/
-├── backend/    # Go API server — see backend/README.md
-└── frontend/   # Expo app + design handoffs
-    └── design/
-        ├── design-system/          # Colour, type, spacing tokens and previews
-        ├── design_handoff_login/   # Login & register screen
-        ├── design_handoff_profile/ # Profile screen
-        └── design_handoff_my_gear/ # My Gear + Stations screens
+├── backend/    # Go API server
+├── mcp/        # MCP server — the current focus
+├── mobile/     # React Native app (Expo) — on hold, not the primary interface
+├── design/     # Design tokens, mockups, and handoff specs
+├── product/    # Product notes and planning
+└── review/     # Code review artifacts
 ```
